@@ -1,10 +1,11 @@
 use std::io::{self, Write};
+use shell::*;
 
 fn main() {
 
     // wlc msg :) 
     println!("===============================");
-    println!("🦀  Welcome to 0-shell (Rust)  ");
+    println!("🦀  Welcome to our 0-shell (Rust)  ");
     println!("===============================");
     println!("Type 'exit' to quit.\n");
 
@@ -24,13 +25,14 @@ fn main() {
 
         if input == "exit" { break; } // exit bach ykhrj 
 
-        // temporary behavior
-        println!("You typed: {:?}", input);
+        // nsfdo input bach nhandliw 3la 7sab chno dkhl lina user
+        dispatch(input);
+
     }
 
     // goodbye msg :)
     println!("\n\n===============================");
-    println!("👋  Goodbye! Thanks for using 0-shell");
+    println!("👋  Goodbye! Thanks for using our 0-shell");
     println!("===============================\n");
 
 }
