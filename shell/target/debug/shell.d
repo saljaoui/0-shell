@@ -1,1 +1,1 @@
-/mnt/c/Users/soufi/0-shell/shell/target/debug/shell: /mnt/c/Users/soufi/0-shell/shell/src/lib.rs /mnt/c/Users/soufi/0-shell/shell/src/main.rs
+/home/yakhaldy/Desktop/0-shell/shell/target/debug/shell: /home/yakhaldy/Desktop/0-shell/shell/src/commands/echo.rs /home/yakhaldy/Desktop/0-shell/shell/src/commands/ls.rs /home/yakhaldy/Desktop/0-shell/shell/src/commands/mod.rs /home/yakhaldy/Desktop/0-shell/shell/src/dispatch.rs /home/yakhaldy/Desktop/0-shell/shell/src/main.rs
