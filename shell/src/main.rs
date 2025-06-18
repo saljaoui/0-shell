@@ -1,6 +1,6 @@
 use std::io::{self, Write};
-use shell::*;
-
+mod dispatch;
+mod commands;
 fn main() {
 
     // wlc msg :) 
@@ -26,7 +26,7 @@ fn main() {
         if input == "exit" { break; } // exit bach ykhrj 
 
         // nsfdo input bach nhandliw 3la 7sab chno dkhl lina user
-        dispatch(input);
+        dispatch::dispatch(input);
 
     }
 
