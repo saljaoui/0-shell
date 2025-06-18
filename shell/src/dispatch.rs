@@ -9,6 +9,7 @@ pub fn dispatch(input: &str) {
     match cmd {
         "echo" => echo::builtin_echo(args),
         "ls" => ls::builtin_ls(args),
+        "rm" => rm::builtin_rm(args),
         // "cd"   => builtin_cd(args),
         // add dakchi li ba9i hena ...
 
