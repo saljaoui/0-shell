@@ -1,0 +1,10 @@
+/home/yhamdoun/0-shell/shell/target/debug/deps/libusers-0a9f0805967ac7b8.rmeta: /home/yhamdoun/.cargo/registry/src/index.crates.io-6f17d22bba15001f/users-0.11.0/src/lib.rs /home/yhamdoun/.cargo/registry/src/index.crates.io-6f17d22bba15001f/users-0.11.0/src/base.rs /home/yhamdoun/.cargo/registry/src/index.crates.io-6f17d22bba15001f/users-0.11.0/src/cache.rs /home/yhamdoun/.cargo/registry/src/index.crates.io-6f17d22bba15001f/users-0.11.0/src/mock.rs /home/yhamdoun/.cargo/registry/src/index.crates.io-6f17d22bba15001f/users-0.11.0/src/switch.rs /home/yhamdoun/.cargo/registry/src/index.crates.io-6f17d22bba15001f/users-0.11.0/src/traits.rs
+
+/home/yhamdoun/0-shell/shell/target/debug/deps/users-0a9f0805967ac7b8.d: /home/yhamdoun/.cargo/registry/src/index.crates.io-6f17d22bba15001f/users-0.11.0/src/lib.rs /home/yhamdoun/.cargo/registry/src/index.crates.io-6f17d22bba15001f/users-0.11.0/src/base.rs /home/yhamdoun/.cargo/registry/src/index.crates.io-6f17d22bba15001f/users-0.11.0/src/cache.rs /home/yhamdoun/.cargo/registry/src/index.crates.io-6f17d22bba15001f/users-0.11.0/src/mock.rs /home/yhamdoun/.cargo/registry/src/index.crates.io-6f17d22bba15001f/users-0.11.0/src/switch.rs /home/yhamdoun/.cargo/registry/src/index.crates.io-6f17d22bba15001f/users-0.11.0/src/traits.rs
+
+/home/yhamdoun/.cargo/registry/src/index.crates.io-6f17d22bba15001f/users-0.11.0/src/lib.rs:
+/home/yhamdoun/.cargo/registry/src/index.crates.io-6f17d22bba15001f/users-0.11.0/src/base.rs:
+/home/yhamdoun/.cargo/registry/src/index.crates.io-6f17d22bba15001f/users-0.11.0/src/cache.rs:
+/home/yhamdoun/.cargo/registry/src/index.crates.io-6f17d22bba15001f/users-0.11.0/src/mock.rs:
+/home/yhamdoun/.cargo/registry/src/index.crates.io-6f17d22bba15001f/users-0.11.0/src/switch.rs:
+/home/yhamdoun/.cargo/registry/src/index.crates.io-6f17d22bba15001f/users-0.11.0/src/traits.rs:

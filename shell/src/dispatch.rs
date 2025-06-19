@@ -1,4 +1,4 @@
-use crate::commands::{ls, echo};
+use crate::commands::{ls, echo, cat};
 
 // handle 3la 7sap chno dkhl user lina fe input 
 pub fn dispatch(input: &str) {
@@ -9,6 +9,7 @@ pub fn dispatch(input: &str) {
     match cmd {
         "echo" => echo::builtin_echo(args),
         "ls" => ls::builtin_ls(args),
+        "cat" => cat::builtin_cat(args),
         // "cd"   => builtin_cd(args),
         // add dakchi li ba9i hena ...
 
