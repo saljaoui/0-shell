@@ -2,7 +2,6 @@ use std::io::{self};
 use std::fs;
 
 pub fn builtin_cat(args: &[&str]){
-    //reading lines and rewriting them
     if args.len()== 0{
         loop{
             let mut input = String::new();
