@@ -24,7 +24,8 @@ pub fn builtin_ls(args: &[&str]){
                             'F'=> is_dir = true,
                             '-'=>{},
                             _=>{
-                                println!("ls: invalid option -- '{}'\nTry 'ls --help' for more information.",a)
+                                println!("ls: invalid option -- '{}'\nTry 'ls --help' for more information.",a);
+                                return;
                             }
                         }
                     }
