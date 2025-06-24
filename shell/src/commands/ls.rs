@@ -2,8 +2,8 @@ use std::fs;
 use std::path::PathBuf;
 use std::os::unix::fs::PermissionsExt;
 use std::os::unix::fs::MetadataExt;
-// use users::{get_user_by_uid, get_group_by_gid};
-
+use users::{get_user_by_uid, get_group_by_gid};
+use users::User;
 pub fn builtin_ls(args: &[&str]){
     let mut show_hidden = false;
     let mut long_format = false;
@@ -73,13 +73,19 @@ fn list_directory(path: &str, show_hidden: bool, long_format: bool, is_dir: bool
         if long_format {
             let file_type = if metadata.is_dir() { "d" } else { "-" };
             let permissions = format_permissions(format!("{:o}", metadata.permissions().mode()));
-             
-        // println!("----{:?} {:?} ",get_user_by_uid(metadata.uid()),get_group_by_gid(metadata.gid()));
+            let user = match get_user_by_uid(metadata.uid()) {
+                                Some(u) => u.name().to_string_lossy().into_owned(),
+                                None => "user".to_string(),
+                            };
+            let group = match get_group_by_gid(metadata.gid()) {
+                                Some(g) => g.name().to_string_lossy().into_owned(),
+                                None => "user".to_string(),
+                            };
             let size = metadata.len();
             if is_dir && metadata.is_dir() {
-                res.push_str(&format!("{}{} ??????? {} ?????? {}/\n",file_type,permissions,size,file_str));
+                res.push_str(&format!("{}{} ? {} {} {} ?????? {}/\n",file_type,permissions,user,group,size,file_str));
             }else{
-                res.push_str(&format!("{}{} ??????? {} ?????? {}\n",file_type,permissions,size,file_str));
+                res.push_str(&format!("{}{} ? {} {} {} ?????? {}\n",file_type,permissions,user,group,size,file_str));
             }
         } else {
             if is_dir && metadata.is_dir(){
