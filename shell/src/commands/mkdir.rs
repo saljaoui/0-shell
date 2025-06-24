@@ -8,6 +8,6 @@ pub fn builtin_mkdir(args: &[&str]){
                 
             },
             false => fs::create_dir(arg).expect("REASON"),
-        }    
+        }
     }
 }
