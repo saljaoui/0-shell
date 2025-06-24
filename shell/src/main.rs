@@ -26,7 +26,9 @@ fn main() {
         if input == "exit" { break; } // exit bach ykhrj 
 
         // nsfdo input bach nhandliw 3la 7sab chno dkhl lina user
-        dispatch::dispatch(input);
+         if input != "" {
+            dispatch::dispatch(input);
+         }
 
     }
 
