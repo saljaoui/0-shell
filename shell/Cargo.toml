@@ -4,11 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-<<<<<<< HEAD
 chrono = "0.4.41"
 users = "0.11.0"
-
-=======
-users = "0.11.0"
 whoami = "1.6.0"
->>>>>>> main
