@@ -3,7 +3,8 @@ use std::path::PathBuf;
 use std::os::unix::fs::PermissionsExt;
 use std::os::unix::fs::MetadataExt;
 use users::{get_user_by_uid, get_group_by_gid};
-use users::User;
+use chrono::{DateTime,Local};
+
 pub fn builtin_ls(args: &[&str]){
     let mut show_hidden = false;
     let mut long_format = false;
@@ -82,10 +83,22 @@ fn list_directory(path: &str, show_hidden: bool, long_format: bool, is_dir: bool
                                 None => "user".to_string(),
                             };
             let size = metadata.len();
+            let links = metadata.nlink();
+            let date = match metadata.modified(){
+                Ok(modified)=> {
+                    let date_time: DateTime<Local> = modified.into();
+                    let format_time = date_time.format("%b %e %H:%M").to_string();
+                    format_time
+                },
+                Err(err)=>{
+                    println!("{}",err);
+                    return
+                }
+            };
             if is_dir && metadata.is_dir() {
-                res.push_str(&format!("{}{} ? {} {} {} ?????? {}/\n",file_type,permissions,user,group,size,file_str));
+                res.push_str(&format!("{}{} {} {} {} {:>4} {} \x1b[34m{}/\x1b[0m\n",file_type,permissions,links,user,group,size,date,file_str));
             }else{
-                res.push_str(&format!("{}{} ? {} {} {} ?????? {}\n",file_type,permissions,user,group,size,file_str));
+                res.push_str(&format!("{}{} {} {} {} {:>4} {} {}\n",file_type,permissions,links,user,group,size,date,file_str));
             }
         } else {
             if is_dir && metadata.is_dir(){
