@@ -2,7 +2,7 @@ use std::fs;
 use std::path::PathBuf;
 use std::os::unix::fs::PermissionsExt;
 use std::os::unix::fs::MetadataExt;
-use users::{get_user_by_uid, get_group_by_gid};
+// use users::{get_user_by_uid, get_group_by_gid};
 
 pub fn builtin_ls(args: &[&str]){
     let mut show_hidden = false;
@@ -15,6 +15,10 @@ pub fn builtin_ls(args: &[&str]){
             "-a"=> show_hidden = true,
             "-F"=> is_dir = true,
             "--help"=> println!("Usage: ls [OPTION]...\nList information about the FILEs (the current directory by default).\n\nOptions:\n  -l      use a long listing format\n  -a      do not ignore entries starting with .\n  -F      append indicator (one of */=>@|) to entries\n  --help  display this help and exit"),
+            "-"=>{
+                    println!("ls: cannot access '-': No such file or directory");
+                    return
+                },
             _=> {
                 if arg.starts_with('-'){
                     for a in arg.chars(){
@@ -47,7 +51,7 @@ pub fn builtin_ls(args: &[&str]){
 fn list_directory(path: &str, show_hidden: bool, long_format: bool, is_dir: bool, more_paths:bool){
     let p = PathBuf::from(path);
     let dir = fs::read_dir(p);
-    let mut items: Vec<_>=  match dir{
+    let items: Vec<_>=  match dir{
         Ok(d)=> d.collect::<Result<Vec<_>, _>>().unwrap(),
         Err(_)=> {
             println!("ls: cannot access '{}': No such file or directory",path);
@@ -68,9 +72,15 @@ fn list_directory(path: &str, show_hidden: bool, long_format: bool, is_dir: bool
         let metadata = item.metadata().unwrap();
         if long_format {
             let file_type = if metadata.is_dir() { "d" } else { "-" };
-            let permissions = format!("{:o}", metadata.permissions().mode() & 0o777);
-        println!("----{:?} {:?} ",get_user_by_uid(metadata.uid()),get_group_by_gid(metadata.gid()));
+            let permissions = format_permissions(format!("{:o}", metadata.permissions().mode()));
+             
+        // println!("----{:?} {:?} ",get_user_by_uid(metadata.uid()),get_group_by_gid(metadata.gid()));
             let size = metadata.len();
+            if is_dir && metadata.is_dir() {
+                res.push_str(&format!("{}{} ??????? {} ?????? {}/\n",file_type,permissions,size,file_str));
+            }else{
+                res.push_str(&format!("{}{} ??????? {} ?????? {}\n",file_type,permissions,size,file_str));
+            }
         } else {
             if is_dir && metadata.is_dir(){
                 res.push_str(&format!("\x1b[34m{}/\x1b[0m ", file_str))
@@ -85,6 +95,27 @@ fn list_directory(path: &str, show_hidden: bool, long_format: bool, is_dir: bool
             }
         }
     }
-    println!("{}",res)
+    println!("{}",res.trim())
     
+}
+
+fn format_permissions(p: String)->String{
+    let permissions = &p[(p.len()-3)..];
+    let mut res = String::new();
+    for c in permissions.chars(){
+        match c{
+            '7'=>res.push_str("rwx"),
+            '6'=>res.push_str("rw-"),
+            '5'=>res.push_str("r-x"),
+            '4'=>res.push_str("r--"),
+            '3'=>res.push_str("-wx"),
+            '2'=>res.push_str("-w-"),
+            '1'=>res.push_str("--x"),
+            '0'=>res.push_str("---"),
+            _=>{
+                println!("----{:?} >>{}",c,permissions);
+            },
+        }
+    }
+    res
 }

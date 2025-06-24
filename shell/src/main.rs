@@ -12,7 +12,7 @@ fn main() {
     // infinity loop bach n9ra chno dkhol user
     loop {
         // hadi daroriya tlbinha fe project ndiroha
-        print!("$ ");
+        print!("\x1b[32m0-shell\x1b[0m:$ ");
         io::stdout().flush().unwrap(); // bach n9dro ndiro print dyal "$ " f terminal
 
         // read input
