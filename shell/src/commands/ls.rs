@@ -49,7 +49,12 @@ pub fn builtin_ls(args: &[&str]) {
     }
     let more_paths = paths.len() > 1;
     for path in paths {
-        list_directory(path, show_hidden, long_format, f_type, more_paths);
+        // if Path::new(path).exists() {
+            // println!("{}", path);
+            // list_file(path, show_hidden, long_format, f_type, more_paths);
+        // } else {
+            list_directory(path, show_hidden, long_format, f_type, more_paths);
+        // }
     }
 }
 
@@ -74,11 +79,7 @@ fn list_directory(
             }
         },
         Err(_) => {
-            // if Path::new(path).exists() {
-            //     println!("{}", path);
-            // } else {
             eprintln!("ls: cannot access '{}': No such file or directory", path);
-            // }
             return;
         }
     };
@@ -101,36 +102,43 @@ fn list_directory(
                 continue;
             }
         };
-        /***********************************************************/
-        // let file_type = if metadata.is_dir() { "d" } else { "-" };
         let mut indicator = "";
         let mut file_type = "";
+        let reset = "\x1b[0m";
+        let mut color = "";
         let item_type = metadata.file_type();
         
             if item_type.is_symlink() {
                 indicator = "@";
                 file_type = "l";
+                color = "\x1b[1m\x1b[36m"; // cyan
             } else if item_type.is_dir() {
                 indicator = "/";
                 file_type = "d";
+                color = "\x1b[1m\x1b[34m"; // blue
             } else if item_type.is_file() && (metadata.permissions().mode() & 0o111 != 0) {
                 indicator = "*";
                 file_type = "-";
+                color =  "\x1b[1m\x1b[32m"; // green
             } else if item_type.is_fifo() {
                 indicator = "|";
                 file_type = "p";
+                color =   "\x1b[1m\x1b[33m"; // yellow
             } else if item_type.is_socket() {
                 indicator = "=";
                 file_type = "s";
+                color =  "\x1b[1m\x1b[35m"; // magenta
             } else if item_type.is_block_device(){
                 file_type = "b";
+                color =  "\x1b[1m\x1b[1;33;40m";// bold yellow on black
             } else if item_type.is_char_device() {
                 file_type = "c";
+                color =  "\x1b[1m\x1b[1;33;40m";// bold yellow on black
             } else {
                 file_type = "-";
             }
-        //////////////////////*************************************/
         if long_format {
+            // println!("{:?}",metadata.permissions());
             let permissions = format_permissions(format!("{:o}", metadata.permissions().mode()));
             let user = match get_user_by_uid(metadata.uid()) {
                 Some(u) => u.name().to_string_lossy().into_owned(),
@@ -155,29 +163,20 @@ fn list_directory(
             };
             if f_type {
                 res.push_str(&format!(
-                    "{}{} {} {} {} {:>4} {} \x1b[34m{}{}\x1b[0m\n",
-                    file_type, permissions, links, user, group, size, date, file_str,indicator
-                ));
-            } else if metadata.is_dir() {
-                res.push_str(&format!(
-                    "{}{} {} {} {} {:>4} {} \x1b[34m{}\x1b[0m\n",
-                    file_type, permissions, links, user, group, size, date, file_str
+                    "{}{} {} {} {} {:>4} {} {}{}{}{}\n",
+                    file_type, permissions, links, user, group, size, date,color, file_str,reset,indicator
                 ));
             } else {
                 res.push_str(&format!(
-                    "{}{} {} {} {} {:>4} {} {}\n",
-                    file_type, permissions, links, user, group, size, date, file_str
+                    "{}{} {} {} {} {:>4} {} {}{}{}\n",
+                    file_type, permissions, links, user, group, size, date,color, file_str,reset
                 ));
             }
         } else {
-            if f_type && metadata.is_dir() {
-                res.push_str(&format!("\x1b[34m{}{}\x1b[0m ", file_str,indicator))
+            if f_type {
+                res.push_str(&format!("{}{}{}{} ", color,file_str,reset,indicator))
             } else {
-                if metadata.is_dir() {
-                    res.push_str(&format!("\x1b[34m{}\x1b[0m ", file_str))
-                } else {
-                    res.push_str(&format!("{} ", file_str))
-                }
+                res.push_str(&format!("{}{}{} ", color, file_str,reset))
             }
         }
     }
@@ -186,21 +185,46 @@ fn list_directory(
 
 fn format_permissions(p: String) -> String {
     let permissions = &p[(p.len() - 3)..];
+     let special = if p.len() >= 4 {
+       p.chars().nth(p.len() - 4).unwrap()
+    } else {
+        '0'
+    };
+    println!("{:?}",special);
     let mut res = String::new();
-    for c in permissions.chars() {
-        match c {
-            '7' => res.push_str("rwx"),
-            '6' => res.push_str("rw-"),
-            '5' => res.push_str("r-x"),
-            '4' => res.push_str("r--"),
-            '3' => res.push_str("-wx"),
-            '2' => res.push_str("-w-"),
-            '1' => res.push_str("--x"),
-            '0' => res.push_str("---"),
-            _ => {
-                println!("----{:?} >>{}", c, permissions);
+    for  (i, c) in permissions.chars().enumerate() {
+        let per = match c {
+            '7' =>"rwx",
+            '6' =>"rw-",
+            '5' =>"r-x",
+            '4' =>"r--",
+            '3' =>"-wx",
+            '2' =>"-w-",
+            '1' =>"--x",
+             _=>"---",
+        };
+        let mut chars: Vec<char> = per.chars().collect();
+        match i {
+            0 => { // user
+                if special == '4' || special == '5' || special == '6' ||special == '7' {
+                    chars[2] = if chars[2] == 'x' { 's' } else { 'S' };
+                }
             }
+            1 => { // group
+                if special == '2' || special == '3' || special == '6' ||special == '7'  {
+                    chars[2] = if chars[2] == 'x' { 's' } else { 'S' };
+                }
+            }
+            2 => { // others
+                if special == '1' || special == '3' || special == '5' ||special == '7'  {
+                    chars[2] = if chars[2] == 'x' { 't' } else { 'T' };
+                }
+            }
+            _ => {}
         }
+
+        res.push_str(&chars.iter().collect::<String>());
+        // res.push_str(per)
     }
     res
 }
