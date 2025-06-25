@@ -56,7 +56,11 @@ fn list_directory(path: &str, show_hidden: bool, long_format: bool, is_dir: bool
     let items: Vec<_>=  match dir{
         Ok(d)=> d.collect::<Result<Vec<_>, _>>().unwrap(),
         Err(_)=> {
-            println!("ls: cannot access '{}': No such file or directory",path);
+             if Path::new(path).exists(){
+                println!("{}",path)
+            }else{
+                println!("ls: cannot access '{}': No such file or directory",path);
+            }
             return;
         }
     };
