@@ -29,7 +29,8 @@ pub fn builtin_ls(args: &[&str]){
                             'F'=> is_dir = true,
                             '-'=>{},
                             _=>{
-                                println!("ls: invalid option -- '{}'\nTry 'ls --help' for more information.",a)
+                                println!("ls: invalid option -- '{}'\nTry 'ls --help' for more information.",a);
+                                return
                             }
                         }
                     }
@@ -104,13 +105,13 @@ fn list_directory(path: &str, show_hidden: bool, long_format: bool, is_dir: bool
             if is_dir && metadata.is_dir(){
                 res.push_str(&format!("\x1b[34m{}/\x1b[0m ", file_str))
             }else{
-                let mut file = String::new();
+                // let mut file = String::new();
                 if metadata.is_dir(){
-                    file = format!("\x1b[34m{}\x1b[0m ", file_str)
+                    res.push_str(&format!("\x1b[34m{}\x1b[0m ", file_str))
                 }else {
-                    file = format!("{} ", file_str)
+                    res.push_str(&format!("{} ", file_str))
                 }
-                res.push_str(&file)
+                // res.push_str(&file)
             }
         }
     }
