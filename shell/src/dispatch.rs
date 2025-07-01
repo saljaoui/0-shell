@@ -1,4 +1,4 @@
-use crate::commands::{ls, echo};
+use crate::commands::{ls, echo, rm};
 
 // handle 3la 7sap chno dkhl user lina fe input 
 pub fn dispatch(input: &str) {
