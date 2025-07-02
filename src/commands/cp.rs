@@ -1,15 +1,31 @@
 use std::fs;
+use crate::commands::cp::fs::OpenOptions;
 use std::path::Path;
+ use std::io::Write;
 pub fn builtin_cd(args: &[&str])-> Result<(), Box<dyn std::error::Error>> {
     if args.len() == 0 {}
     let destination = args[args.len()-1];
     let sources = &args[..args.len()-1];
-    println!("{:?} {:?} ",destination,sources);
+
+     let mut dest_file = OpenOptions::new()
+        .write(true)
+        .create(true)
+        .truncate(true)  // Clear existing content first
+        .open(destination)?;
+
     for src in sources {
-        copy_file(src, destination)?;
+        let content = std::fs::read_to_string(src)?;
+        dest_file.write_all(content.as_bytes())?;
     }
     Ok(())
+    // println!("{:?} {:?} ",destination,sources);
+    // for src in sources {
+    //     copy_file(src, destination)?;
+    // }
+    // Ok(())
 }
+
+
 fn copy_file(src: &str, dst: &str) -> Result<(), String> {
     let src_path = Path::new(src);
     let dst_path = Path::new(dst);
