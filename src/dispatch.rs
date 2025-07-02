@@ -1,4 +1,4 @@
-use crate::commands::{ls, echo, cat, mkdir, cd, rm};
+use crate::commands::{ls, echo, cat, mkdir, cd, rm,cp};
 
 // handle 3la 7sap chno dkhl user lina fe input 
 pub fn dispatch(input: &str) {
@@ -13,6 +13,7 @@ pub fn dispatch(input: &str) {
         "mkdir" => mkdir::builtin_mkdir(args),
         "cd" => cd::builtin_cd(args),
         "rm" => rm::builtin_rm(args),
+        "cp"=>cp::builtin_cd(args).expect("REASON"),
         // "cd"   => builtin_cd(args),
         // add dakchi li ba9i hena ...
 
