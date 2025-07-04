@@ -5,3 +5,4 @@ pub mod mkdir;
 pub mod cd;
 pub mod rm;
 pub mod cp;
+pub mod pwd;
