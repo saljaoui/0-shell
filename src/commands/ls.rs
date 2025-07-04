@@ -63,10 +63,10 @@ pub fn builtin_ls(args: &[&str]) {
             files.push(path)
         }
     }
+    let more_paths = directorys.len() > 1 || !files.clone().is_empty();
     for path in files{
         list_file(path, long_format, f_type);
     }
-    let more_paths = directorys.len() > 1 || files.len() > 1;
     for path in directorys{
         list_directory(path, show_hidden, long_format, f_type, more_paths);
     }
