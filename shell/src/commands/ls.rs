@@ -47,17 +47,53 @@ pub fn builtin_ls(args: &[&str]) {
     if paths.is_empty() {
         paths.push(".")
     }
-    let more_paths = paths.len() > 1;
+   let mut directorys = Vec::new();
+   let mut files = Vec::new();
     for path in paths {
-        // if Path::new(path).exists() {
-            // println!("{}", path);
-            // list_file(path, show_hidden, long_format, f_type, more_paths);
-        // } else {
-            list_directory(path, show_hidden, long_format, f_type, more_paths);
-        // }
+        let metadata = match fs::metadata(path) {
+            Ok(m) => m,
+            Err(e) => {
+                        eprintln!("ls: cannot access '{}': {}", path, e);
+                        return;
+                        }
+        };
+        if metadata.is_dir() {
+            directorys.push(path)
+        } else {
+            files.push(path)
+        }
+    }
+    for path in files{
+        list_file(path, long_format, f_type);
+    }
+    let more_paths = directorys.len() > 1;
+    for path in directorys{
+        list_directory(path, show_hidden, long_format, f_type, more_paths);
     }
 }
+fn list_file(
+    path: &str,
+    show_hidden: bool,
+    long_format: bool,
+    f_type: bool,
+) {
+    let p = PathBuf::from(path);
+    let file_str = match p.file_name() {
+        Some(f) => f.to_string_lossy(),
+        None => {
+            eprintln!("ls: invalid file name '{}'", path);
+            return;
+        }
+    };
+    let metadata = match fs::metadata(&path_buf) {
+        Ok(m) => m,
+        Err(e) => {
+            eprintln!("ls: cannot access '{}': {}", path, e);
+            return;
+        }
+    };
 
+}
 fn list_directory(
     path: &str,
     show_hidden: bool,
@@ -102,6 +138,8 @@ fn list_directory(
                 continue;
             }
         };
+
+        
         let mut indicator = "";
         let mut file_type = "";
         let reset = "\x1b[0m";
@@ -228,3 +266,5 @@ fn format_permissions(p: String) -> String {
     }
     res
 }
+
+fn get_file_type()
