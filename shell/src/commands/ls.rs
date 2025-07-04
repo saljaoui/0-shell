@@ -73,26 +73,28 @@ pub fn builtin_ls(args: &[&str]) {
 }
 fn list_file(
     path: &str,
-    show_hidden: bool,
     long_format: bool,
     f_type: bool,
 ) {
     let p = PathBuf::from(path);
-    let file_str = match p.file_name() {
-        Some(f) => f.to_string_lossy(),
-        None => {
-            eprintln!("ls: invalid file name '{}'", path);
-            return;
-        }
-    };
-    let metadata = match fs::metadata(&path_buf) {
+    let metadata = match fs::symlink_metadata(&p) {
         Ok(m) => m,
         Err(e) => {
             eprintln!("ls: cannot access '{}': {}", path, e);
             return;
         }
     };
-
+    let file_str = match p.file_name() {
+        Some(f) => f.to_string_lossy().to_string(),
+        None => {
+            eprintln!("ls: invalid file name '{}'", path);
+            return;
+        }
+    };
+        match print_entry(&file_str, &metadata, long_format, f_type){
+            Ok(r)=> print!("{}",&r),
+            Err(e)=>eprint!("{:?}",e),
+        }
 }
 fn list_directory(
     path: &str,
@@ -102,124 +104,52 @@ fn list_directory(
     more_paths: bool,
 ) {
     let p = PathBuf::from(path);
-    let dir = fs::read_dir(p);
-    let p = PathBuf::from(path);
-    let dir = fs::read_dir(p);
-
-    let mut items: Vec<_> = match dir {
-        Ok(d) => match d.collect::<Result<Vec<_>, _>>() {
-            Ok(vec) => vec,
-            Err(e) => {
-                eprintln!("ls: error reading directory entries: {}", e);
-                return;
-            }
-        },
-        Err(_) => {
-            eprintln!("ls: cannot access '{}': No such file or directory", path);
+    let dir = match fs::read_dir(&p) {
+        Ok(d) => d,
+        Err(e) => {
+            eprintln!("ls: cannot access '{}': {}", path, e);
             return;
         }
     };
-    let mut res = String::new();
+
+    let mut items: Vec<_> = match dir.collect::<Result<Vec<_>, _>>() {
+        Ok(vec) => vec,
+        Err(e) => {
+            eprintln!("ls: error reading directory '{}': {}", path, e);
+            return;
+        }
+    };
+
     if more_paths {
-        res.push_str(&format!("{}:\n", path))
+        println!("{}:", path);
     }
 
-    items.sort_by_key(|entry| entry.file_name());
+    items.sort_by_key(|e| e.file_name());
+    let mut res = String::new();
     for item in items {
-        let file = item.file_name();
-        let file_str = file.to_string_lossy();
+        let file_str = item.file_name().to_string_lossy().to_string();
         if !show_hidden && file_str.starts_with('.') {
             continue;
         }
+
         let metadata = match item.metadata() {
             Ok(m) => m,
             Err(e) => {
-                eprintln!("ls: cannot get metadata for {:?}: {}", item.path(), e);
+                eprintln!("ls: error reading metadata: {}", e);
                 continue;
             }
         };
-
         
-        let mut indicator = "";
-        let mut file_type = "";
-        let reset = "\x1b[0m";
-        let mut color = "";
-        let item_type = metadata.file_type();
-        
-            if item_type.is_symlink() {
-                indicator = "@";
-                file_type = "l";
-                color = "\x1b[1m\x1b[36m"; // cyan
-            } else if item_type.is_dir() {
-                indicator = "/";
-                file_type = "d";
-                color = "\x1b[1m\x1b[34m"; // blue
-            } else if item_type.is_file() && (metadata.permissions().mode() & 0o111 != 0) {
-                indicator = "*";
-                file_type = "-";
-                color =  "\x1b[1m\x1b[32m"; // green
-            } else if item_type.is_fifo() {
-                indicator = "|";
-                file_type = "p";
-                color =   "\x1b[1m\x1b[33m"; // yellow
-            } else if item_type.is_socket() {
-                indicator = "=";
-                file_type = "s";
-                color =  "\x1b[1m\x1b[35m"; // magenta
-            } else if item_type.is_block_device(){
-                file_type = "b";
-                color =  "\x1b[1m\x1b[1;33;40m";// bold yellow on black
-            } else if item_type.is_char_device() {
-                file_type = "c";
-                color =  "\x1b[1m\x1b[1;33;40m";// bold yellow on black
-            } else {
-                file_type = "-";
-            }
-        if long_format {
-            // println!("{:?}",metadata.permissions());
-            let permissions = format_permissions(format!("{:o}", metadata.permissions().mode()));
-            let user = match get_user_by_uid(metadata.uid()) {
-                Some(u) => u.name().to_string_lossy().into_owned(),
-                None => "user".to_string(),
-            };
-            let group = match get_group_by_gid(metadata.gid()) {
-                Some(g) => g.name().to_string_lossy().into_owned(),
-                None => "user".to_string(),
-            };
-            let size = metadata.len();
-            let links = metadata.nlink();
-            let date = match metadata.modified() {
-                Ok(modified) => {
-                    let date_time: DateTime<Local> = modified.into();
-                    let format_time = date_time.format("%b %e %H:%M").to_string();
-                    format_time
-                }
-                Err(err) => {
-                    eprintln!("{}", err);
-                    return;
-                }
-            };
-            if f_type {
-                res.push_str(&format!(
-                    "{}{} {} {} {} {:>4} {} {}{}{}{}\n",
-                    file_type, permissions, links, user, group, size, date,color, file_str,reset,indicator
-                ));
-            } else {
-                res.push_str(&format!(
-                    "{}{} {} {} {} {:>4} {} {}{}{}\n",
-                    file_type, permissions, links, user, group, size, date,color, file_str,reset
-                ));
-            }
-        } else {
-            if f_type {
-                res.push_str(&format!("{}{}{}{} ", color,file_str,reset,indicator))
-            } else {
-                res.push_str(&format!("{}{}{} ", color, file_str,reset))
-            }
+        match print_entry(&file_str, &metadata, long_format, f_type){
+            Ok(r)=>res.push_str(&r),
+            Err(e)=>eprintln!("{:?}",e),
         }
+        
     }
-    println!("{}", res.trim())
+    println!("{}", res.trim());
+
 }
+
 
 fn format_permissions(p: String) -> String {
     let permissions = &p[(p.len() - 3)..];
@@ -228,7 +158,7 @@ fn format_permissions(p: String) -> String {
     } else {
         '0'
     };
-    println!("{:?}",special);
+    // println!("{:?}",special);
     let mut res = String::new();
     for  (i, c) in permissions.chars().enumerate() {
         let per = match c {
@@ -262,9 +192,88 @@ fn format_permissions(p: String) -> String {
         }
 
         res.push_str(&chars.iter().collect::<String>());
-        // res.push_str(per)
     }
     res
 }
+fn print_entry(
+    file_str: &str,
+    metadata: &fs::Metadata,
+    long_format: bool,
+    f_type: bool,
+)-> Result<String,String> {
+    let mut indicator = "";
+    let mut file_type = "-";
+    let mut color = "\x1b[0m";
+    let reset = "\x1b[0m";
+    let item_type = metadata.file_type();
 
-fn get_file_type()
+    if item_type.is_symlink() {
+        indicator = "@";
+        file_type = "l";
+        color = "\x1b[1m\x1b[36m";
+    } else if item_type.is_dir() {
+        indicator = "/";
+        file_type = "d";
+        color = "\x1b[1m\x1b[34m";
+    } else if item_type.is_file() && metadata.permissions().mode() & 0o111 != 0 {
+        indicator = "*";
+        file_type = "-";
+        color = "\x1b[1m\x1b[32m";
+    } else if item_type.is_fifo() {
+        indicator = "|";
+        file_type = "p";
+        color = "\x1b[1m\x1b[33m";
+    } else if item_type.is_socket() {
+        indicator = "=";
+        file_type = "s";
+        color = "\x1b[1m\x1b[35m";
+    } else if item_type.is_block_device() {
+        file_type = "b";
+        color = "\x1b[1m\x1b[1;33;40m";
+    } else if item_type.is_char_device() {
+        file_type = "c";
+        color = "\x1b[1m\x1b[1;33;40m";
+    }
+
+   if long_format {
+            let permissions = format_permissions(format!("{:o}", metadata.permissions().mode()));
+            let user = match get_user_by_uid(metadata.uid()) {
+                Some(u) => u.name().to_string_lossy().into_owned(),
+                None => "user".to_string(),
+            };
+            let group = match get_group_by_gid(metadata.gid()) {
+                Some(g) => g.name().to_string_lossy().into_owned(),
+                None => "user".to_string(),
+            };
+            let size = metadata.len();
+            let links = metadata.nlink();
+            let date = match metadata.modified() {
+                Ok(modified) => {
+                    let date_time: DateTime<Local> = modified.into();
+                    let format_time = date_time.format("%b %e %H:%M").to_string();
+                    format_time
+                }
+                Err(err) => {
+                   return  Err(format!("{}", err));
+                }
+            };
+            if f_type {
+                return Ok(format!(
+                    "{}{} {} {} {} {:>4} {} {}{}{}{}\n",
+                    file_type, permissions, links, user, group, size, date,color, file_str,reset,indicator
+                ));
+            } else {
+                return Ok(format!(
+                    "{}{} {} {} {} {:>4} {} {}{}{}\n",
+                    file_type, permissions, links, user, group, size, date,color, file_str,reset
+                ));
+            }
+        } else {
+            if f_type {
+                return Ok(format!("{}{}{}{} ", color,file_str,reset,indicator))
+            } else {
+                return Ok(format!("{}{}{} ", color, file_str,reset))
+            }
+        }
+        // return Err("".to_string())
+}
