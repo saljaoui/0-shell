@@ -475,3 +475,14 @@ fn format_permissions(mode: u32) -> String {
     
     result
 }
+
+
+
+
+
+ let mut max_width = max_widths{
+        max_links : 0,
+        max_user : 0,
+        max_group : 0,
+        max_size : 0,
+    };

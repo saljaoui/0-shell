@@ -57,7 +57,7 @@ pub fn builtin_ls(args: &[&str]) {
     
     let mut directories = Vec::new();
     let mut files = Vec::new();
-    
+   
     for path in paths {
         let metadata = match fs::metadata(path) {
             Ok(m) => m,
@@ -79,7 +79,9 @@ pub fn builtin_ls(args: &[&str]) {
     for path in files.clone() {
         list_file(path, &options);
     }
-    
+    if !more_paths{
+        println!();
+    }
     for (i, path) in directories.iter().enumerate() {
         if i > 0 || !files.is_empty() {
             println!(); 
@@ -87,10 +89,15 @@ pub fn builtin_ls(args: &[&str]) {
         list_directory(path, &options, more_paths);
     }
 }
-//let (max_links, max_user, max_group, max_size) = calculate_max_widths(&entries);
-struct  max_widths {
-    
+
+#[derive(Debug)]
+struct MaxWidths {
+    max_links: usize,
+    max_user: usize,
+    max_group: usize,
+    max_size: usize,
 }
+
 fn list_file(path: &str, options: &LsOptions) {
     let p = PathBuf::from(path);
     let metadata = match fs::symlink_metadata(&p) {
@@ -105,8 +112,10 @@ fn list_file(path: &str, options: &LsOptions) {
         Some(f) => f.to_string_lossy().to_string(),
         None => path.to_string(), 
     };
-    
-    match print_entry(&file_str, &metadata, options, Some(&p)) {
+    let items = Vec::new();
+    let max_widths = calculate_max_widths(&items);
+
+    match print_entry(&file_str, &metadata, options, Some(&p), &max_widths) {
         Ok(r) => print!("{}", &r),
         Err(e) => eprintln!("ls: {}", e),
     }
@@ -137,6 +146,9 @@ fn list_directory(
     if more_paths {
         println!("{}:", path);
     }
+
+    let max_widths = calculate_max_widths(&items);
+    // println!("---{:?}",max_widths);
 
     items.sort_by(|a, b| {
         let a_name = a.file_name().to_string_lossy().to_lowercase();
@@ -181,7 +193,7 @@ fn list_directory(
     }
 
     for (file_str, metadata, path) in all_entries {
-        match print_entry(&file_str, &metadata, options, Some(&path)) {
+        match print_entry(&file_str, &metadata, options, Some(&path), &max_widths) {
             Ok(r) => res.push_str(&r),
             Err(e) => eprintln!("ls: {}", e),
         }
@@ -245,6 +257,7 @@ fn print_entry(
     metadata: &fs::Metadata,
     options: &LsOptions,
     path: Option<&Path>,
+    max_widths: &MaxWidths
 ) -> Result<String, String> {
     let mut indicator = "";
     let mut file_type = "-";
@@ -323,13 +336,36 @@ fn print_entry(
 
         if options.f_type {
             Ok(format!(
-                "{}{} {:>2} {:>8} {:>8} {:>8} {} {}{}\n",
-                file_type, permissions, links, user, group, size, date, filename_display, indicator
+                "{}{} {:>width_links$} {:>width_user$} {:>width_group$} {:>width_size$} {} {}{}\n",
+                file_type, 
+                permissions, 
+                links, 
+                user, 
+                group, 
+                size, 
+                date, 
+                filename_display, 
+                indicator,
+                width_links = max_widths.max_links,
+                width_user = max_widths.max_user,
+                width_group = max_widths.max_group,
+                width_size = max_widths.max_size
             ))
         } else {
             Ok(format!(
-                "{}{} {:>2} {:>8} {:>8} {:>8} {} {}\n",
-                file_type, permissions, links, user, group, size, date, filename_display
+                "{}{} {:>width_links$} {:>width_user$} {:>width_group$} {:>width_size$} {} {}\n",
+                file_type, 
+                permissions, 
+                links, 
+                user, 
+                group, 
+                size, 
+                date, 
+                filename_display,
+                width_links = max_widths.max_links,
+                width_user = max_widths.max_user,
+                width_group = max_widths.max_group,
+                width_size = max_widths.max_size
             ))
         }
     } else {
@@ -341,27 +377,36 @@ fn print_entry(
     }
 }
 
-
-fn calculate_max_widths(entries: &[(String, fs::Metadata)]) -> (usize, usize, usize, usize) {
-    let mut max_links = 0;
-    let mut max_user = 0;
-    let mut max_group = 0;
-    let mut max_size = 0;
+use std::fs::DirEntry;
+fn calculate_max_widths(items: &Vec<DirEntry>) -> MaxWidths {
+    let mut max_widths = MaxWidths {
+        max_links: 0,
+        max_user: 0,
+        max_group: 0,
+        max_size: 0,
+    };
     
-    for (_, metadata) in entries {
-        max_links = max_links.max(metadata.nlink().to_string().len());
-        max_size = max_size.max(metadata.len().to_string().len());
+    for item in items {
+        let metadata = match item.metadata() {
+            Ok(m) => m,
+            Err(e) => {
+                eprintln!("ls: error reading metadata for : {}", e);
+                continue;
+            }
+        };
+        max_widths.max_links = max_widths.max_links.max(metadata.nlink().to_string().len());
+        max_widths.max_size = max_widths.max_size.max(metadata.len().to_string().len());
         
         let user = get_user_by_uid(metadata.uid())
             .map(|u| u.name().to_string_lossy().len())
             .unwrap_or_else(|| metadata.uid().to_string().len());
-        max_user = max_user.max(user);
+        max_widths.max_user = max_widths.max_user.max(user);
         
         let group = get_group_by_gid(metadata.gid())
             .map(|g| g.name().to_string_lossy().len())
             .unwrap_or_else(|| metadata.gid().to_string().len());
-        max_group = max_group.max(group);
+        max_widths.max_group = max_widths.max_group.max(group);
     }
     
-    (max_links, max_user, max_group, max_size)
+    max_widths
 }
