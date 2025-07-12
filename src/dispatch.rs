@@ -15,6 +15,8 @@ pub fn dispatch(input: &str) {
         "rm" => rm::builtin_rm(args),
         "cp"=>cp::builtin_cp(args),
         "pwd"=>pwd::builtin_pwd(args),
+        "mv"=>mv::builtin_mv(args),
+        // "cd"   => builtin_cd(args),
         // "cd"   => builtin_cd(args),
         // add dakchi li ba9i hena ...
 

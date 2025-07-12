@@ -6,3 +6,5 @@ pub mod cd;
 pub mod rm;
 pub mod cp;
 pub mod pwd;
+pub mod mv;
+pub mod utls_file;
