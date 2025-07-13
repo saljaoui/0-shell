@@ -20,8 +20,7 @@ pub fn builtin_mv(args: &[&str]) {
 
 fn move_single_file(sources: &str, path_destination: &Path) -> io::Result<()> {
     let path_source = Path::new(sources);
-
-    if path_source.is_dir() && path_destination.is_file() {
+    if path_destination == Path::new(".") || path_destination == Path::new("./") {
         return Err(io::Error::new(
             io::ErrorKind::NotFound,
             format!(
@@ -38,8 +37,16 @@ fn move_single_file(sources: &str, path_destination: &Path) -> io::Result<()> {
         ));
     }
     if path_destination.is_dir() {
-        let new_path = path_destination.join(path_source.file_name().unwrap());
-        fs::rename(sources, new_path).unwrap();
+        let path = path_source.file_name();
+        match path {
+            Some(o) => {
+                let new_path = path_destination.join(o);
+                fs::rename(sources, new_path).unwrap();
+            },
+            None=>{
+                println!("mv: cannot move '{}' to '{}': Device or resource busy",sources,path_destination.display())
+            }
+        }
     } else {
         fs::rename(sources, path_destination).unwrap();
     }
@@ -49,4 +56,3 @@ fn move_single_file(sources: &str, path_destination: &Path) -> io::Result<()> {
     }
     Ok(())
 }
-
