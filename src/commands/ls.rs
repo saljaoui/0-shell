@@ -79,7 +79,7 @@ pub fn builtin_ls(args: &[&str]) {
     for path in files.clone() {
         list_file(path, &options);
     }
-    if !more_paths{
+    if !more_paths && !files.is_empty(){
         println!();
     }
     for (i, path) in directories.iter().enumerate() {
