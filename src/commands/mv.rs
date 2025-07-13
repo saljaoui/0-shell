@@ -42,13 +42,25 @@ fn move_single_file(sources: &str, path_destination: &Path) -> io::Result<()> {
             Some(o) => {
                 let new_path = path_destination.join(o);
                 fs::rename(sources, new_path).unwrap();
-            },
-            None=>{
-                println!("mv: cannot move '{}' to '{}': Device or resource busy",sources,path_destination.display())
+            }
+            None => {
+                println!(
+                    "mv: cannot move '{}' to '{}': Device or resource busy",
+                    sources,
+                    path_destination.display()
+                )
             }
         }
     } else {
-        fs::rename(sources, path_destination).unwrap();
+        match fs::rename(sources, path_destination) {
+            Ok(()) => {
+                println!("File moved successfully!");
+            }
+            Err(error) => {
+                println!("Error moving file: {}", error);
+                return Err(error);
+            }
+        }
     }
     if path_source.is_file() {
         copy_dir_all(path_source, path_destination)?;
