@@ -47,7 +47,7 @@ fn move_single_file(sources: &str, path_destination: &Path) -> io::Result<()> {
                 println!(
                     "mv: cannot move '{}' to '{}': Device or resource busy",
                     sources,
-                    path_destination.display()
+                    // path_destination.display()
                 )
             }
         }
