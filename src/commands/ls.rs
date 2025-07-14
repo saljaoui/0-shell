@@ -79,13 +79,14 @@ pub fn builtin_ls(args: &[&str]) {
     for path in files.clone() {
         list_file(path, &options);
     }
-    if !more_paths && !files.is_empty(){
+    if !more_paths && !files.is_empty() && !directories.is_empty() {
         println!();
     }
     for (i, path) in directories.iter().enumerate() {
         if i > 0 || !files.is_empty() {
             println!(); 
         }
+       
         list_directory(path, &options, more_paths);
     }
 }
@@ -147,14 +148,17 @@ fn list_directory(
         println!("{}:", path);
     }
 
-    let max_widths = calculate_max_widths(&items);
-    // println!("---{:?}",max_widths);
+ 
 
-    items.sort_by(|a, b| {
-        let a_name = a.file_name().to_string_lossy().to_lowercase();
-        let b_name = b.file_name().to_string_lossy().to_lowercase();
-        a_name.cmp(&b_name)
-    });
+items.sort_by(|a, b| {
+    let a_name = a.file_name().to_string_lossy().to_lowercase();
+    let b_name = b.file_name().to_string_lossy().to_lowercase();
+    
+    let a_clean = a_name.strip_prefix('.').unwrap_or(&a_name);
+    let b_clean = b_name.strip_prefix('.').unwrap_or(&b_name);
+    
+    a_clean.cmp(&b_clean)
+});
     
     let mut res = String::new();
     let mut total_blocks = 0;
@@ -192,6 +196,8 @@ fn list_directory(
         println!("total {}", total_blocks / 2);
     }
 
+    let max_widths = calculate_max_widths(&all_entries);
+    // println!("---{:?}",max_widths);
     for (file_str, metadata, path) in all_entries {
         match print_entry(&file_str, &metadata, options, Some(&path), &max_widths) {
             Ok(r) => res.push_str(&r),
@@ -376,9 +382,9 @@ fn print_entry(
         }
     }
 }
-
-use std::fs::DirEntry;
-fn calculate_max_widths(items: &Vec<DirEntry>) -> MaxWidths {
+ use std::fs::Metadata;
+// use std::fs::DirEntry;
+fn calculate_max_widths(items: &Vec<(String, Metadata, PathBuf)>) -> MaxWidths {
     let mut max_widths = MaxWidths {
         max_links: 0,
         max_user: 0,
@@ -386,14 +392,14 @@ fn calculate_max_widths(items: &Vec<DirEntry>) -> MaxWidths {
         max_size: 0,
     };
     
-    for item in items {
-        let metadata = match item.metadata() {
-            Ok(m) => m,
-            Err(e) => {
-                eprintln!("ls: error reading metadata for : {}", e);
-                continue;
-            }
-        };
+    for (file_str, metadata, path) in items {
+        // let metadata = match item.metadata() {
+        //     Ok(m) => m,
+        //     Err(e) => {
+        //         eprintln!("ls: error reading metadata for : {}", e);
+        //         continue;
+        //     }
+        // };
         max_widths.max_links = max_widths.max_links.max(metadata.nlink().to_string().len());
         max_widths.max_size = max_widths.max_size.max(metadata.len().to_string().len());
         

@@ -7,9 +7,9 @@ unsafe extern "C" {
     fn signal(signal: i32, handler: extern "C" fn(i32));
 }
 extern "C" fn signal_handler(_signal: i32) {
-    println!();
-    print!("\x1b[32m0-shell\x1b[0m:$ ");
-    io::stdout().flush().unwrap(); // bach n9dro ndiro print dyal "$ " f terminal
+    // println!();
+    // print!("\x1b[32m0-shell\x1b[0m:$ ");
+    // io::stdout().flush().unwrap(); // bach n9dro ndiro print dyal "$ " f terminal
 }
 
 fn main() {
@@ -33,20 +33,21 @@ fn main() {
 
         // read input
         let mut input = String::new();
-        match io::stdin().read_line(&mut input){
-            Ok(0)=> break,
-            Ok(_)=>{},
-            Err(e)=> eprintln!("{}",e)
+         match io::stdin().read_line(&mut input) {
+            Ok(0) => break, // EOF (Ctrl+D)
+            Ok(_) => {},
+            Err(e) => {
+                eprintln!("Error reading input: {}", e);
+                continue;
+            }
         }
-
-        // if input == "" { break; } // Ctrl+D 
 
         let input = input.trim();
 
         if input == "exit" { break; } // exit bach ykhrj 
 
         // nsfdo input bach nhandliw 3la 7sab chno dkhl lina user
-         if input != "" {
+         if !input.is_empty()  {
             dispatch::dispatch(input);
          }
 
