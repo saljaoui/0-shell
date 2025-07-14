@@ -213,11 +213,7 @@ items.sort_by(|a, b| {
 fn format_permissions(mode: u32) -> String {
     let permissions = format!("{:o}", mode);
     let perm_str = &permissions[(permissions.len() - 3)..];
-    let special = if permissions.len() >= 4 {
-        permissions.chars().nth(permissions.len() - 4).unwrap()
-    } else {
-        '0'
-    };
+    let special = permissions.chars().nth(permissions.len() - 4).unwrap_or('0');
     
     let mut res = String::new();
     for (i, c) in perm_str.chars().enumerate() {
@@ -392,14 +388,7 @@ fn calculate_max_widths(items: &Vec<(String, Metadata, PathBuf)>) -> MaxWidths {
         max_size: 0,
     };
     
-    for (file_str, metadata, path) in items {
-        // let metadata = match item.metadata() {
-        //     Ok(m) => m,
-        //     Err(e) => {
-        //         eprintln!("ls: error reading metadata for : {}", e);
-        //         continue;
-        //     }
-        // };
+    for (_file_str, metadata, _path) in items {
         max_widths.max_links = max_widths.max_links.max(metadata.nlink().to_string().len());
         max_widths.max_size = max_widths.max_size.max(metadata.len().to_string().len());
         
