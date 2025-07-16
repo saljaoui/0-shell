@@ -5,7 +5,7 @@ pub fn copy_file(path_sources: &Path, destination: &str) {
     let valid = fs::copy(path_sources, destination);
     match valid {
         Ok(_) => {
-            println!("Copied  {:?} to {}", path_sources, destination)
+            // println!("Copied  {:?} to {}", path_sources, destination)
         }
         Err(r) => {
             println!("Error to copy file {}", r)

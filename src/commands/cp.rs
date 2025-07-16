@@ -21,32 +21,33 @@ pub fn builtin_cp(args: &[&str]) {
 fn handle_single_file(source: &str, destination: &Path) {
     let path_source = Path::new(source);
     if !path_source.exists() {
-        println!("Path does not exist!");
+        // println!("{:#?}", (source, destination));
+        println!("cp: cannot stat {:?}: No such file or directory", source);
         return;
     }
     if !path_source.is_file() {
-        println!("{:?} is not a file", path_source);
+        println!("cp: -r not specified; omitting directory {:?}", path_source);
         return;
     }
 
-    if destination.exists() {
-        match check_file_size(destination) {
-            Ok(size) if size > 0 => {
-                let question = format!(
-                    "File '{}' already exists. Overwrite?",
-                    destination.display()
-                );
-                if !check_use_copy_yes_or_no(&question) {
-                    return;
-                }
-            }
-            Err(e) => {
-                println!("Error checking file size: {}", e);
-                return;
-            }
-            _ => {}
-        }
-    }
+    // if destination.exists() {
+    //     match check_file_size(destination) {
+    //         Ok(size) if size > 0 => {
+    //             let question = format!(
+    //                 "File '{}' already exists. Overwrite?",
+    //                 destination.display()
+    //             );
+    //             if !check_use_copy_yes_or_no(&question) {
+    //                 return;
+    //             }
+    //         }
+    //         Err(e) => {
+    //             println!("Error checking file size: {}", e);
+    //             return;
+    //         }
+    //         _ => {}
+    //     }
+    // }
     copy_file(path_source, &destination.to_string_lossy());
 }
 
