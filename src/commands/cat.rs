@@ -16,7 +16,7 @@ pub fn builtin_cat(args: &[&str]){
         for arg in args{
             match fs::read_to_string(arg){
                 Ok(text)=>{
-                    println!("{:?}",text)
+                    print!("{}",text)
                 } 
                 Err(_) =>{
                     println!("cat: {}: No such file or directory",arg);
