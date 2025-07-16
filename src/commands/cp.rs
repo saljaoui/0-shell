@@ -1,7 +1,7 @@
 use std::path::Path;
-use std::{fs};
+use std::{ fs };
 
-use crate::commands::utls_file::{check_file_size, check_use_copy_yes_or_no, copy_file};
+use crate::commands::utls_file::{ copy_file };
 
 pub fn builtin_cp(args: &[&str]) {
     if args.is_empty() {
@@ -18,33 +18,32 @@ pub fn builtin_cp(args: &[&str]) {
     }
 }
 
-fn handle_single_file(source: &str, destination: &Path){
+fn handle_single_file(source: &str, destination: &Path) {
+    let path_source = fs::canonicalize(source);
+    let final_destination = fs::canonicalize(destination);
+    println!("{:?} {:?}", path_source, final_destination);
     let path_source = Path::new(source);
     if !path_source.exists() {
         println!("Path does not exist!");
-        return ;
+        return;
     }
     if !path_source.is_file() {
         println!("{:?} is not a file", path_source);
-        return ;
+        return;
     }
-
-    if destination.exists() {
-        match check_file_size(destination) {
-            Ok(size) if size > 0 => {
-                let question = format!("File '{}' already exists. Overwrite?", destination.display());
-                if !check_use_copy_yes_or_no(&question) {
-                    return ;
-                }
+    let final_destination = if destination.is_dir() {
+        let filename = path_source.file_name();
+        match filename {
+            Some(file) => { destination.join(file) }
+            None => {
+                println!("Error: Could not extract filename from {:?}", path_source);
+                return;
             }
-            Err(e) => {
-                eprintln!("Error checking file size: {}", e);
-                return ;
-            }
-            _ => {} 
         }
-    }
-    copy_file(path_source, &destination.to_string_lossy());
+    } else {
+        destination.to_path_buf()
+    };
+    copy_file(path_source, &final_destination);
 }
 
 fn handle_multiple_files(sources: &[&str], destination: &Path) {
@@ -66,11 +65,10 @@ fn handle_multiple_files(sources: &[&str], destination: &Path) {
             println!("Skipping '{}': Not a regular file", file);
             continue;
         }
-        
+
         let dest_path = destination.join(path.file_name().unwrap());
         if let Err(e) = fs::copy(path, dest_path) {
             eprintln!("Failed to copy '{}': {}", file, e);
         }
     }
 }
-

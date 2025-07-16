@@ -2,7 +2,7 @@ use chrono::{DateTime, Local};
 use std::fs;
 use std::os::unix::fs::MetadataExt;
 use std::os::unix::fs::PermissionsExt;
-use std::path::{Path, PathBuf};
+use std::path::{ PathBuf};
 use users::{get_group_by_gid, get_user_by_uid};
 use std::os::unix::fs::FileTypeExt;
 
