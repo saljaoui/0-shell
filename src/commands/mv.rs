@@ -33,7 +33,7 @@ fn move_single_file(sources: &str, path_destination: &Path) -> io::Result<()> {
     if !path_source.exists() {
         return Err(io::Error::new(
             io::ErrorKind::NotFound,
-            format!("Source '{}' doesn't exist", sources),
+            format!("mv: cannot stat '{}': No such file or directory", sources),
         ));
     }
     if path_destination.is_dir() {
@@ -54,7 +54,7 @@ fn move_single_file(sources: &str, path_destination: &Path) -> io::Result<()> {
     } else {
         match fs::rename(sources, path_destination) {
             Ok(()) => {
-                println!("File moved successfully!");
+                // println!("File moved successfully!");
             }
             Err(error) => {
                 println!("Error moving file: {}", error);
