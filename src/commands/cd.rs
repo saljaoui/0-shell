@@ -9,7 +9,7 @@ pub fn builtin_cd(args: &[&str]) {
         let _ = env::set_current_dir(&root);
     }else{
         let _ = match env::set_current_dir(&args[0]){
-            Err(_) => println!("No such file or directory: {}",args[0]),
+            Err(_) => println!("cd: no such file or directory: {}",args[0]),
             Ok(f) => f,
         };
     }
