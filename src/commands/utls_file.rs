@@ -12,18 +12,18 @@ pub fn copy_file(path_sources: &Path, destination: &str) {
         }
     }
 }
-pub fn check_file_size(path: &Path) -> io::Result<u64> {
-    let metadata = fs::metadata(path)?;
-    Ok(metadata.len()) // Returns size in bytes
-}
-pub fn check_use_copy_yes_or_no(question: &str) -> bool {
-    println!("{} (y/n)", question);
-    let mut input = String::new();
-    io::stdin()
-        .read_line(&mut input)
-        .expect("Failed to read input");
-    input.trim().to_lowercase() == "y" || input.trim().to_lowercase() == "yes"
-}
+// pub fn check_file_size(path: &Path) -> io::Result<u64> {
+//     let metadata = fs::metadata(path)?;
+//     Ok(metadata.len()) // Returns size in bytes
+// }
+// pub fn check_use_copy_yes_or_no(question: &str) -> bool {
+//     println!("{} (y/n)", question);
+//     let mut input = String::new();
+//     io::stdin()
+//         .read_line(&mut input)
+//         .expect("Failed to read input");
+//     input.trim().to_lowercase() == "y" || input.trim().to_lowercase() == "yes"
+// }
 
 pub fn copy_dir_all(src: &Path, dst: &Path) -> io::Result<()> {
     fs::create_dir_all(dst)?;

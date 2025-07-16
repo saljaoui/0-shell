@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::Path;
 
-use crate::commands::utls_file::{check_file_size, check_use_copy_yes_or_no, copy_file};
+use crate::commands::utls_file::copy_file;
 
 pub fn builtin_cp(args: &[&str]) {
     if args.is_empty() {
@@ -76,9 +76,7 @@ fn handle_multiple_files(sources: &[&str], destination: &Path) {
             break;
         }
         let path_buf = match path.file_name() {
-            Some(name) => {
-                destination.join(name)
-            },
+            Some(name) => destination.join(name),
             None => {
                 println!("Error: Path '{}' has no file name", path.display());
                 // println!("Path '{}' has no file name", path.display())
