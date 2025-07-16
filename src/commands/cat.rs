@@ -1,5 +1,4 @@
-use crate::commands::cat::fs::File;
-use std::fs;
+use std::fs::File;
 use std::io::{self};
 
 pub fn builtin_cat(args: &[&str]) {
