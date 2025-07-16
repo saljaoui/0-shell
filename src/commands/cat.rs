@@ -1,20 +1,13 @@
 use std::fs::File;
 use std::io::{self};
 
-fn check(arg: &str) -> bool {
-    if arg == "-" || arg == "--" {
-        return true;
-    }
-    false
-}
-
 pub fn builtin_cat(args: &[&str]) {
     unsafe {
         signal(2, signal_handler);
     }
     if args.len() == 0 {
         loop {
-            let mut input = String::new();
+            let mut input: String = String::new();
             match io::stdin().read_line(&mut input) {
                 Ok(_) => print!("{}", input),
                 Err(e) => print!("{}", e),
@@ -25,22 +18,21 @@ pub fn builtin_cat(args: &[&str]) {
         }
     } else if args.len() >= 1 {
         for arg in args {
-            let check = check(arg);
-            if !check {
+            if *arg == "-" || *arg == "--" {
+                builtin_cat(&[])
+            } else {
                 match File::open(arg) {
                     Ok(mut file) => {
-                        let stdout = io::stdout();
-                        let mut out_handle = stdout.lock();
-                        if let Err(e) = io::copy(&mut file, &mut out_handle) {
-                            eprintln!("--cat: {}: {}", arg, e);
+                        let stdout: io::Stdout = io::stdout();
+                        let mut out_handle: io::StdoutLock<'static> = stdout.lock();
+                        if let Err(_) = io::copy(&mut file, &mut out_handle) {
+                            eprintln!("cat: {}: Is a directory", arg);
                         }
                     }
                     Err(_) => {
                         eprintln!("cat: {}: No such file or directory", arg);
                     }
                 }
-            } else {
-                builtin_cat(&[])
             }
         }
     }
