@@ -1,5 +1,6 @@
 use crate::commands::*;
 // use fork::waitpid;
+use shell::*;
 use fork::{fork, Fork};
 // handle 3la 7sap chno dkhl user lina fe input 
 pub fn dispatch(input: &str) {
