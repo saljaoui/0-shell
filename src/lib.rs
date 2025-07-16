@@ -50,5 +50,10 @@ pub fn parse_command(input: &str) -> Vec<&str> {
         tokens.push(&input[start..]);
     }
 
+    if quotes.1 {
+        println!("Syntax error: Unterminated quoted string");
+        return vec![]
+    }
+
     tokens
 }
