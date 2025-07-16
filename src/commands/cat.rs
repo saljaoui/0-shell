@@ -1,5 +1,5 @@
+use crate::commands::cat::fs::File;
 use std::fs;
-use std::io::Write;
 use std::io::{self};
 
 pub fn builtin_cat(args: &[&str]) {
@@ -19,19 +19,16 @@ pub fn builtin_cat(args: &[&str]) {
         }
     } else if args.len() >= 1 {
         for arg in args {
-            match fs::read_to_string(arg) {
-                Ok(text) => {
-                    print!("{}", text);
+            match File::open(arg) {
+                Ok(mut file) => {
+                    let stdout = io::stdout();
+                    let mut out_handle = stdout.lock();
+                    if let Err(e) = io::copy(&mut file, &mut out_handle) {
+                        eprintln!("--cat: {}: {}", arg, e);
+                    }
                 }
                 Err(_) => {
-                    match fs::read(arg) {
-                        Ok(bytes) => {
-                            io::stdout().write_all(&bytes).unwrap();
-                        }
-                        Err(_) => {
-                            eprintln!("cat: {}: No such file or directory", arg);
-                        }
-                    }
+                    eprintln!("cat: {}: No such file or directory", arg);
                 }
             }
         }
