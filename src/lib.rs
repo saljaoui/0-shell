@@ -1,3 +1,7 @@
+use std::io;
+use std::io::Write;
+use std::str::Chars;
+
 pub fn parse_command(input: &str) -> Vec<&str> {
     let mut tokens: Vec<&str> = vec![];
     let mut start = 0;
@@ -51,9 +55,65 @@ pub fn parse_command(input: &str) -> Vec<&str> {
     }
 
     if quotes.1 {
-        println!("Syntax error: Unterminated quoted string");
-        return vec![]
+
+        let mut vec_in_loop = vec![];
+
+        loop {
+            print!("> ");
+            io::stdout().flush().unwrap();
+
+            let mut input_user = String::new();
+            match io::stdin().read_line(&mut input_user) {
+                Ok(0) => {
+                    println!("Syntax error: Unterminated quoted string");   // EOF (Ctrl+D)
+                    break
+                },
+                Ok(_) => {}
+                Err(e) => {
+                    eprintln!("Error reading input: {}", e);
+                    continue;
+                }
+            }
+            if ckeck_quote(quotes.0, input_user.clone()) {
+                tokens.push(&input[start..]);
+                let correct_word: String = input_user.replace('\'', "");
+                vec_in_loop.push(correct_word);
+
+                if tokens[0] == "echo" { 
+                    let mut first = false; 
+                    for t in tokens.clone() {
+                        if !first {
+                            first = true
+                        } else {
+                            println!("{}", t)
+                        }
+                    }
+                    for v in vec_in_loop {
+                        print!("{}", v)
+                    }
+                    return vec![];
+                }
+
+                break;
+            } else {
+                vec_in_loop.push(input_user);
+            }
+        }
+        return tokens;
     }
 
     tokens
+}
+
+fn ckeck_quote(quote: char, input: String) -> bool {
+    let mut quotes = 0;
+    for i in input.chars() {
+        if i == quote {
+            quotes += 1
+        }
+    }
+    if quotes == 1 {
+        return true;
+    }
+    false
 }
