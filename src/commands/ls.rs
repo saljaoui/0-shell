@@ -4,7 +4,7 @@ use std::os::unix::fs::FileTypeExt;
 use std::os::unix::fs::MetadataExt;
 use std::os::unix::fs::PermissionsExt;
 use std::path::Path;
-use std::path::{ PathBuf};
+use std::path::PathBuf;
 use users::{get_group_by_gid, get_user_by_uid};
 
 #[derive(Default)]
@@ -109,7 +109,6 @@ struct MaxWidths {
     max_w_size: usize,
     max_time: usize,
     max_perm: usize,
-
 }
 
 fn list_file(path: &str, options: &LsOptions) {
@@ -254,56 +253,131 @@ pub fn strip_ansi_codes(s: &str) -> String {
 }
 use std::cmp::min;
 fn print_in_columns(filenames: &[String]) {
-   
-
     let term_width = get_terminal_width();
-    let count = filenames.len();
-
-    if count == 0 {
+    if filenames.is_empty() {
         return;
     }
 
-    let stripped_lengths: Vec<usize> = filenames
+    let items: Vec<(String, usize)> = filenames
         .iter()
-        .map(|name| strip_ansi_codes(name).len())
+        .map(|s| {
+            let clean_len = strip_ansi_codes(s).len();
+            (s.clone(), clean_len)
+        })
         .collect();
 
-    let mut cols = count;
-    while cols > 1 {
-        let rows = (count + cols - 1) / cols;
+    let item_count = items.len();
+    let mut best_cols = 1;
+    let mut best_rows = item_count;
+
+    if item_count == 1 {
+        println!("{}", items[0].0);
+        return;
+    }
+
+    for cols in 1..item_count.min(term_width / 3).max(1) {
+        let rows = (item_count + cols - 1) / cols;
+
+        if rows > best_rows {
+            continue;
+        }
 
         let mut col_widths = vec![0; cols];
-        for (i, &len) in stripped_lengths.iter().enumerate() {
-            let col = i / rows;
-            col_widths[col] = col_widths[col].max(len);
+
+        for (idx, (_, clean_len)) in items.iter().enumerate() {
+            let col = idx / rows;
+            if col < cols {
+                col_widths[col] = col_widths[col].max(*clean_len);
+            }
         }
 
-        let total_width: usize = col_widths.iter().map(|&w| w + 2).sum();
+        let total_width: usize = col_widths.iter().sum::<usize>() + (cols - 1) * 2;
+
         if total_width <= term_width {
-            break;
+            best_cols = cols;
+            best_rows = rows;
+
+            if rows == 1 {
+                break;
+            }
         }
-        cols -= 1;
     }
-    let rows = (count + cols - 1) / cols;
+
+    let cols = best_cols;
+    let rows = best_rows;
+
+    let mut col_widths = vec![0; cols];
+    for (idx, (_, clean_len)) in items.iter().enumerate() {
+        let col = idx / rows;
+        if col < cols {
+            col_widths[col] = col_widths[col].max(*clean_len);
+        }
+    }
 
     for row in 0..rows {
         for col in 0..cols {
             let idx = col * rows + row;
-            if idx < count {
-                let name = &filenames[idx];
-                let col_width = filenames
-                    .iter()
-                    .skip(col * rows)
-                    .take(min(rows, count - col * rows))
-                    .map(|s| s.len())
-                    .max()
-                    .unwrap_or(0);
-                let padding = if col == cols - 1 { 0 } else { 1 }; // No padding for last column
-                print!("{:<width$}", name, width = col_width + padding);
+            if idx >= item_count {
+                break;
+            }
+            let (ref name, clean_len) = items[idx];
+            print!("{}", name);
+
+            if col < cols - 1 && idx < item_count - 1 {
+                let pad = col_widths[col] - clean_len + 1;
+                print!("{}", " ".repeat(pad));
             }
         }
         println!();
     }
+    /********************* */
+    // let term_width = get_terminal_width();
+    // let count = filenames.len();
+
+    // if count == 0 {
+    //     return;
+    // }
+
+    // let stripped_lengths: Vec<usize> = filenames
+    //     .iter()
+    //     .map(|name| strip_ansi_codes(name).len())
+    //     .collect();
+
+    // let mut cols = count;
+    // while cols > 1 {
+    //     let rows = (count + cols - 1) / cols;
+
+    //     let mut col_widths = vec![0; cols];
+    //     for (i, &len) in stripped_lengths.iter().enumerate() {
+    //         let col = i / rows;
+    //         col_widths[col] = col_widths[col].max(len);
+    //     }
+
+    //     let total_width: usize = col_widths.iter().map(|&w| w + 2).sum();
+    //     if total_width <= term_width {
+    //         break;
+    //     }
+    //     cols -= 1;
+    // }
+    // let rows = (count + cols - 1) / cols;
+
+    // for row in 0..rows {
+    //     for col in 0..cols {
+    //         let idx = col * rows + row;
+    //         if idx < count {
+    //             let name = &filenames[idx];
+    //             let col_width = filenames
+    //                 .iter()
+    //                 .skip(col * rows)
+    //                 .take(min(rows, count - col * rows))
+    //                 .map(|s| s.len())
+    //                 .max()
+    //                 .unwrap_or(0);
+    //             let padding = if col == cols - 1 { 0 } else { 1 }; // No padding for last column
+    //             print!("{:<width$}", name, width = col_width + padding);
+    //         }
+    //     }
+    //     println!();
 }
 
 /********/
@@ -449,7 +523,7 @@ fn print_entry(
                 date_time = date_time + Duration::hours(1);
                 let now = Local::now();
 
-                if now.signed_duration_since(date_time) > Duration::days(180) || date_time > now {
+                if now.signed_duration_since(date_time) > Duration::days(180) {
                     date_time.format("%b %e  %Y").to_string()
                 } else {
                     date_time.format("%b %e %H:%M").to_string()
@@ -521,13 +595,13 @@ fn print_entry(
 use std::fs::Metadata;
 fn calculate_max_widths(items: &Vec<(String, Metadata, PathBuf)>) -> MaxWidths {
     let mut max_widths = MaxWidths {
-        max_perm : 0,
+        max_perm: 0,
         max_links: 0,
         max_user: 0,
         max_group: 0,
         max_size: 0,
         max_w_size: 0,
-        max_time : 0
+        max_time: 0,
     };
 
     for (_file_str, metadata, path) in items {
@@ -538,7 +612,7 @@ fn calculate_max_widths(items: &Vec<(String, Metadata, PathBuf)>) -> MaxWidths {
                 let major = ((rdev >> 8) & 0xfff) as u32;
                 let minor = ((rdev & 0xff) | ((rdev >> 12) & 0xfff00)) as u32;
                 // println!("{}=>{}==={}",minor.to_string(), minor.to_string().len(),max_widths.max_w_size);
-                max_widths.max_w_size =  max_widths.max_w_size.max(minor.to_string().len());
+                max_widths.max_w_size = max_widths.max_w_size.max(minor.to_string().len());
                 format!("{}, {}", major, minor).len()
             } else {
                 metadata.len().to_string().len()
@@ -570,7 +644,7 @@ fn calculate_max_widths(items: &Vec<(String, Metadata, PathBuf)>) -> MaxWidths {
             Err(_) => "".to_string(),
         };
         max_widths.max_time = max_widths.max_time.max(date.len());
-        let perm = format_permissions(metadata.permissions().mode(),&path);
+        let perm = format_permissions(metadata.permissions().mode(), &path);
         max_widths.max_perm = max_widths.max_perm.max(perm.len())
     }
 
