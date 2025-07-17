@@ -25,12 +25,16 @@ pub fn builtin_cat(args: &[&str]) {
                     Ok(mut file) => {
                         let stdout: io::Stdout = io::stdout();
                         let mut out_handle: io::StdoutLock<'static> = stdout.lock();
-                        if let Err(_) = io::copy(&mut file, &mut out_handle) {
-                            eprintln!("cat: {}: Is a directory", arg);
+                        if let Err(e) = io::copy(&mut file, &mut out_handle) {
+                            let error = e.to_string();
+                            let error_clean = error.split(" (os error").next().unwrap_or(&error);
+                            eprintln!("cat: {}: {}", arg, error_clean);
                         }
                     }
-                    Err(_) => {
-                        eprintln!("cat: {}: No such file or directory", arg);
+                    Err(e) => {
+                        let error = e.to_string();
+                        let error_clean = error.split(" (os error").next().unwrap_or(&error);
+                        eprintln!("cat: {}: {}", arg, error_clean);
                     }
                 }
             }

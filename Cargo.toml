@@ -12,4 +12,8 @@ whoami = "1.6.0"
 nix = { version = "0.30.1", features = ["signal"] }
 fork = "0.2.0"
 binaryornot = "1.0.0"
+terminal_size = "0.4.2"
+regex = "1.11.1"
+xattr = "1.5.1"
+atty = "0.2.14"
 

@@ -1,4 +1,5 @@
 use std::io::{self, Write};
+use atty::Stream;
 mod dispatch;
 mod commands;
 // mod signal_handler;
@@ -13,7 +14,10 @@ extern "C" fn signal_handler(_signal: i32) {
 }
 
 fn main() {
-
+     if !atty::is(Stream::Stdout) {
+        eprintln!("error: broken pipe\nstdout is NOT connected to a terminal.");
+        return;
+    }
     // wlc msg :) 
     println!("===============================");
     println!("🦀  Welcome to our 0-shell (Rust)  ");
@@ -29,7 +33,12 @@ fn main() {
     loop {
         // hadi daroriya tlbinha fe project ndiroha
         print!("\x1b[32m0-shell\x1b[0m:$ ");
-        io::stdout().flush().unwrap(); // bach n9dro ndiro print dyal "$ " f terminal
+        match io::stdout().flush(){
+            Ok(_)=>{},
+            Err(e)=>{
+                eprintln!("{e}");
+            }
+        }; // bach n9dro ndiro print dyal "$ " f terminal
 
         // read input
         let mut input = String::new();
