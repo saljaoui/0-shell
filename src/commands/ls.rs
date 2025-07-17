@@ -237,83 +237,134 @@ fn get_terminal_width() -> usize {
 use regex::Regex;
 
 pub fn strip_ansi_codes(s: &str) -> String {
-    let re = Regex::new(r"\x1b\[[0-9;]*m").unwrap();
-    re.replace_all(s, "").to_string()
+    let re_ansi = Regex::new(r"\x1b\[[0-9;]*m").unwrap();
+    re_ansi.replace_all(s, "").trim().to_string()
 }
-fn print_in_columns(result: &[String]) {
-    let term_width = get_terminal_width();
-    if result.is_empty() {
+use std::cmp::min;
+fn print_in_columns(filenames: &[String]) {
+    // let term_width = get_terminal_width();
+    // if filenames.is_empty() {
+    //     return;
+    // }
+
+    // let items: Vec<(String, usize)> = filenames
+    //     .iter()
+    //     .map(|s| {
+    //         let clean_len = strip_ansi_codes(s).len();
+    //         (s.clone(), clean_len)
+    //     })
+    //     .collect();
+
+    // let item_count = items.len();
+    // let mut best_cols = 1;
+    // let mut best_rows = item_count;
+
+    // if item_count == 1 {
+    //     println!("{}", items[0].0);
+    //     return;
+    // }
+
+    // for cols in 1..item_count.min(term_width / 3).max(1) {
+    //     let rows = (item_count + cols - 1) / cols;
+
+    //     if rows > best_rows {
+    //         continue;
+    //     }
+
+    //     let mut col_widths = vec![0; cols];
+
+    //     for (idx, (_, clean_len)) in items.iter().enumerate() {
+    //         let col = idx / rows;
+    //         if col < cols {
+    //             col_widths[col] = col_widths[col].max(*clean_len);
+    //         }
+    //     }
+
+    //     let total_width: usize = col_widths.iter().sum::<usize>() + (cols - 1) * 2;
+
+    //     if total_width <= term_width {
+    //         best_cols = cols;
+    //         best_rows = rows;
+
+    //         if rows == 1 {
+    //             break;
+    //         }
+    //     }
+    // }
+
+    // let cols = best_cols;
+    // let rows = best_rows;
+
+    // let mut col_widths = vec![0; cols];
+    // for (idx, (_, clean_len)) in items.iter().enumerate() {
+    //     let col = idx / rows;
+    //     if col < cols {
+    //         col_widths[col] = col_widths[col].max(*clean_len);
+    //     }
+    // }
+
+    // for row in 0..rows {
+    //     for col in 0..cols {
+    //         let idx = col * rows + row;
+    //         if idx >= item_count {
+    //             break;
+    //         }
+    //         let (ref name, clean_len) = items[idx];
+    //         print!("{}", name);
+
+    //         if col < cols - 1 && idx < item_count - 1 {
+    //             let pad = col_widths[col] - clean_len + 1;
+    //             print!("{}", " ".repeat(pad));
+    //         }
+    //     }
+    //     println!();
+    // }
+    /********************* */
+      let term_width = get_terminal_width();
+    let count = filenames.len();
+
+    if count == 0 {
         return;
     }
 
-    let items: Vec<(String, usize)> = result
-        .iter()
-        .map(|s| {
-            let clean_len = strip_ansi_codes(s).len();
-            (s.clone(), clean_len)
-        })
-        .collect();
+    
+let stripped_lengths: Vec<usize> = filenames
+    .iter()
+    .map(|name| strip_ansi_codes(name).len())
+    .collect();
 
-    let item_count = items.len();
-    let mut best_cols = 1;
-    let mut best_rows = item_count;
-
-    if item_count == 1 {
-        println!("{}", items[0].0);
-        return;
-    }
-
-    for cols in 1..=item_count.min(term_width / 3).max(1) {
-        let rows = (item_count + cols - 1) / cols;
-
-        if rows > best_rows {
-            continue;
-        }
-
-        let mut col_widths = vec![0; cols];
-
-        for (idx, (_, clean_len)) in items.iter().enumerate() {
-            let col = idx / rows;
-            if col < cols {
-                col_widths[col] = col_widths[col].max(*clean_len);
-            }
-        }
-
-        let total_width: usize = col_widths.iter().sum::<usize>() + (cols - 1) * 2;
-
-        if total_width <= term_width {
-            best_cols = cols;
-            best_rows = rows;
-
-            if rows == 1 {
-                break;
-            }
-        }
-    }
-
-    let cols = best_cols;
-    let rows = best_rows;
+let mut cols = count;
+while cols > 1 {
+    let rows = (count + cols - 1) / cols;
 
     let mut col_widths = vec![0; cols];
-    for (idx, (_, clean_len)) in items.iter().enumerate() {
-        let col = idx / rows;
-        if col < cols {
-            col_widths[col] = col_widths[col].max(*clean_len);
-        }
+    for (i, &len) in stripped_lengths.iter().enumerate() {
+        let col = i / rows;
+        col_widths[col] = col_widths[col].max(len);
     }
+
+    let total_width: usize = col_widths.iter().map(|&w| w + 2).sum();
+    if total_width <= term_width {
+        break;
+    }
+    cols -= 1;
+}
+    let rows = (count + cols - 1) / cols;
 
     for row in 0..rows {
         for col in 0..cols {
             let idx = col * rows + row;
-            if idx >= item_count {
-                break;
-            }
-            let (ref name, clean_len) = items[idx];
-            print!("{}", name);
-
-            if col < cols - 1 && idx < item_count - 1 {
-                let pad = col_widths[col] - clean_len + 2;
-                print!("{}", " ".repeat(pad));
+            if idx < count {
+                let name = &filenames[idx];
+                let col_width = filenames
+                    .iter()
+                    .skip(col * rows)
+                    .take(min(rows, count - col * rows))
+                    .map(|s| s.len())
+                    .max()
+                    .unwrap_or(0);
+                let padding = if col == cols - 1 { 0 } else { 1 }; // No padding for last column
+                print!("{:<width$}", name, width = col_width + padding);
             }
         }
         println!();
