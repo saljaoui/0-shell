@@ -1,6 +1,5 @@
 use std::io;
 use std::io::Write;
-use std::str::Chars;
 
 pub fn parse_command(input: &str) -> Vec<&str> {
     let mut tokens: Vec<&str> = vec![];
