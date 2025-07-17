@@ -4,7 +4,8 @@ use shell::*;
 use fork::{fork, Fork};
 // handle 3la 7sap chno dkhl user lina fe input 
 pub fn dispatch(input: &str) {
-    let parts: Vec<&str> = parse_command(input);
+    let parts_string: Vec<String> = parse_command(input);
+    let parts: Vec<&str> = parts_string.iter().map(|s| s.as_str()).collect();
     if parts.len() == 0 {
         return
     }

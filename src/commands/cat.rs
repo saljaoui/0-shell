@@ -27,14 +27,16 @@ pub fn builtin_cat(args: &[&str]) {
                         let mut out_handle: io::StdoutLock<'static> = stdout.lock();
                         if let Err(e) = io::copy(&mut file, &mut out_handle) {
                             let error = e.to_string();
+                            let formatarg = format_arg(arg);
                             let error_clean = error.split(" (os error").next().unwrap_or(&error);
-                            eprintln!("cat: {}: {}", arg, error_clean);
+                            eprintln!("cat: {}: {}", formatarg, error_clean);
                         }
                     }
                     Err(e) => {
                         let error = e.to_string();
                         let error_clean = error.split(" (os error").next().unwrap_or(&error);
-                        eprintln!("cat: {}: {}", arg, error_clean);
+                        let formatarg = format_arg(arg);
+                        eprintln!("cat: {}: {}", formatarg, error_clean);
                     }
                 }
             }
@@ -47,4 +49,16 @@ unsafe extern "C" {
 }
 extern "C" fn signal_handler(_signal: i32) {
     std::process::exit(0);
+}
+
+fn format_arg(arg: &str) -> String {
+    if arg.contains("\n"){
+        let parts: Vec<&str> = arg.trim().split('\n').collect();
+        let quoted_parts: Vec<String> = parts.iter().map(|part| format!("'{}'", part)).collect();
+        let mut joined= quoted_parts.join("$'\\n'");
+        joined.push_str("$'\\n'");
+        return joined
+    }else {
+        return arg.to_string();
+    }
 }

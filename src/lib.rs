@@ -1,8 +1,8 @@
 use std::io;
 use std::io::Write;
 
-pub fn parse_command(input: &str) -> Vec<&str> {
-    let mut tokens: Vec<&str> = vec![];
+pub fn parse_command(input: &str) -> Vec<String> {
+    let mut tokens: Vec<String> = vec![];
     let mut start = 0;
     let mut in_token = false;
     let mut quotes = ('\0', false);
@@ -16,7 +16,7 @@ pub fn parse_command(input: &str) -> Vec<&str> {
         if quotes.1 {
             if c == quotes.0 {
                 quotes.1 = false;
-                tokens.push(&input[start..i]);
+                tokens.push(input[start..i].to_string());
                 in_token = false;
             }
             i += 1;
@@ -34,7 +34,7 @@ pub fn parse_command(input: &str) -> Vec<&str> {
 
         if c.is_whitespace() {
             if in_token {
-                tokens.push(&input[start..i]);
+                tokens.push(input[start..i].to_string());
                 in_token = false;
             }
             i += 1;
@@ -50,28 +50,27 @@ pub fn parse_command(input: &str) -> Vec<&str> {
     }
 
     if in_token && !quotes.1 {
-        tokens.push(&input[start..]);
+        tokens.push(input[start..].to_string());
     }
 
     if quotes.1 {
-
         let mut vec_in_loop = vec![];
 
         loop {
             print!("> ");
-        match io::stdout().flush(){
-            Ok(_)=>{},
-            Err(e)=>{
-                eprintln!("{e}");
-            }
-        };
+            match io::stdout().flush() {
+                Ok(_) => {}
+                Err(e) => {
+                    eprintln!("{e}");
+                }
+            };
 
             let mut input_user = String::new();
             match io::stdin().read_line(&mut input_user) {
                 Ok(0) => {
-                    println!("Syntax error: Unterminated quoted string");   // EOF (Ctrl+D)
-                    break
-                },
+                    println!("Syntax error: Unterminated quoted string"); // EOF (Ctrl+D)
+                    break;
+                }
                 Ok(_) => {}
                 Err(e) => {
                     eprintln!("Error reading input: {}", e);
@@ -79,12 +78,12 @@ pub fn parse_command(input: &str) -> Vec<&str> {
                 }
             }
             if ckeck_quote(quotes.0, input_user.clone()) {
-                tokens.push(&input[start..]);
+                tokens.push(input[start..].to_string());
                 let correct_word: String = input_user.replace('\'', "");
                 vec_in_loop.push(correct_word);
 
-                if tokens[0] == "echo" { 
-                    let mut first = false; 
+                if tokens[0] == "echo" {
+                    let mut first = false;
                     for t in tokens.clone() {
                         if !first {
                             first = true
@@ -103,6 +102,10 @@ pub fn parse_command(input: &str) -> Vec<&str> {
                 vec_in_loop.push(input_user);
             }
         }
+
+        let joined = format!("\n{}", vec_in_loop.join(""));
+        let escaped = joined.replace("\"", "");
+        tokens[1].push_str(&escaped);
         return tokens;
     }
 
