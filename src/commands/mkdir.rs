@@ -1,13 +1,20 @@
-use std::path::Path;
 use std::fs;
-pub fn builtin_mkdir(args: &[&str]){
-    for arg in args{
-        match Path::new(arg).is_dir(){
-            true => {
-                println!("mkdir: cannot create directory {}: File exists",arg)
-                
-            },
-            false => fs::create_dir(arg).expect("REASON"),
+use std::path::Path;
+
+pub fn builtin_mkdir(args: &[&str]) {
+    for arg in args {
+        let path = Path::new(arg);
+        if path.exists() {
+            println!("mkdir: cannot create directory '{}': File exists", arg);
+        } else {
+            match fs::create_dir_all(path) {
+                Ok(_) => {},
+                Err(e) => {
+                    let error = e.to_string();
+                    let error_clean = error.split(" (os error").next().unwrap_or(&error);
+                    println!("mkdir: cannot create directory '{}': {}", arg, error_clean);
+                }
+            }
         }
     }
 }
