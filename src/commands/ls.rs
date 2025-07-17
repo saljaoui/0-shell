@@ -107,6 +107,9 @@ struct MaxWidths {
     max_group: usize,
     max_size: usize,
     max_w_size: usize,
+    max_time: usize,
+    max_perm: usize,
+
 }
 
 fn list_file(path: &str, options: &LsOptions) {
@@ -251,84 +254,8 @@ pub fn strip_ansi_codes(s: &str) -> String {
 }
 use std::cmp::min;
 fn print_in_columns(filenames: &[String]) {
-    // let term_width = get_terminal_width();
-    // if filenames.is_empty() {
-    //     return;
-    // }
+   
 
-    // let items: Vec<(String, usize)> = filenames
-    //     .iter()
-    //     .map(|s| {
-    //         let clean_len = strip_ansi_codes(s).len();
-    //         (s.clone(), clean_len)
-    //     })
-    //     .collect();
-
-    // let item_count = items.len();
-    // let mut best_cols = 1;
-    // let mut best_rows = item_count;
-
-    // if item_count == 1 {
-    //     println!("{}", items[0].0);
-    //     return;
-    // }
-
-    // for cols in 1..item_count.min(term_width / 3).max(1) {
-    //     let rows = (item_count + cols - 1) / cols;
-
-    //     if rows > best_rows {
-    //         continue;
-    //     }
-
-    //     let mut col_widths = vec![0; cols];
-
-    //     for (idx, (_, clean_len)) in items.iter().enumerate() {
-    //         let col = idx / rows;
-    //         if col < cols {
-    //             col_widths[col] = col_widths[col].max(*clean_len);
-    //         }
-    //     }
-
-    //     let total_width: usize = col_widths.iter().sum::<usize>() + (cols - 1) * 2;
-
-    //     if total_width <= term_width {
-    //         best_cols = cols;
-    //         best_rows = rows;
-
-    //         if rows == 1 {
-    //             break;
-    //         }
-    //     }
-    // }
-
-    // let cols = best_cols;
-    // let rows = best_rows;
-
-    // let mut col_widths = vec![0; cols];
-    // for (idx, (_, clean_len)) in items.iter().enumerate() {
-    //     let col = idx / rows;
-    //     if col < cols {
-    //         col_widths[col] = col_widths[col].max(*clean_len);
-    //     }
-    // }
-
-    // for row in 0..rows {
-    //     for col in 0..cols {
-    //         let idx = col * rows + row;
-    //         if idx >= item_count {
-    //             break;
-    //         }
-    //         let (ref name, clean_len) = items[idx];
-    //         print!("{}", name);
-
-    //         if col < cols - 1 && idx < item_count - 1 {
-    //             let pad = col_widths[col] - clean_len + 1;
-    //             print!("{}", " ".repeat(pad));
-    //         }
-    //     }
-    //     println!();
-    // }
-    /********************* */
     let term_width = get_terminal_width();
     let count = filenames.len();
 
@@ -496,7 +423,7 @@ fn print_entry(
             .map(|g| g.name().to_string_lossy().into_owned())
             .unwrap_or_else(|| metadata.gid().to_string());
         // let size = metadata.len();
-
+        // println!("{}",max_widths.max_w_size);
         let size =
             if metadata.file_type().is_char_device() || metadata.file_type().is_block_device() {
                 // let major = (metadata.rdev() >> 8) as u32;
@@ -547,7 +474,7 @@ fn print_entry(
 
         if options.f_type {
             Ok(format!(
-                "{}{} {:<width_links$} {:<width_user$} {:<width_group$} {:>width_size$} {} {}{indicator}\n",
+                "{}{:<width_perm$} {:>width_links$} {:<width_user$} {:<width_group$} {:>width_size$} {:>width_time$} {}{indicator}\n",
                 file_type,
                 permissions,
                 links,
@@ -557,14 +484,16 @@ fn print_entry(
                 date,
                 filename_display,
                 indicator = if indicator == "@" { "" }else{indicator} ,
+                width_perm = max_widths.max_perm,
                 width_links = max_widths.max_links,
                 width_user = max_widths.max_user,
                 width_group = max_widths.max_group,
-                width_size = max_widths.max_size
+                width_size = max_widths.max_size,
+                width_time = max_widths.max_time
             ))
         } else {
             Ok(format!(
-                "{}{} {:<width_links$} {:<width_user$} {:<width_group$} {:>width_size$} {} {}\n",
+                "{}{:<width_perm$} {:>width_links$} {:<width_user$} {:<width_group$} {:>width_size$} {:>width_time$} {}\n",
                 file_type,
                 permissions,
                 links,
@@ -573,10 +502,12 @@ fn print_entry(
                 size,
                 date,
                 filename_display,
+                width_perm = max_widths.max_perm,
                 width_links = max_widths.max_links,
                 width_user = max_widths.max_user,
                 width_group = max_widths.max_group,
-                width_size = max_widths.max_size
+                width_size = max_widths.max_size,
+                width_time = max_widths.max_time
             ))
         }
     } else {
@@ -588,24 +519,26 @@ fn print_entry(
     }
 }
 use std::fs::Metadata;
-
 fn calculate_max_widths(items: &Vec<(String, Metadata, PathBuf)>) -> MaxWidths {
     let mut max_widths = MaxWidths {
+        max_perm : 0,
         max_links: 0,
         max_user: 0,
         max_group: 0,
         max_size: 0,
         max_w_size: 0,
+        max_time : 0
     };
 
-    for (_file_str, metadata, _path) in items {
+    for (_file_str, metadata, path) in items {
         max_widths.max_links = max_widths.max_links.max(metadata.nlink().to_string().len());
         let size_len =
             if metadata.file_type().is_char_device() || metadata.file_type().is_block_device() {
                 let rdev = metadata.rdev();
                 let major = ((rdev >> 8) & 0xfff) as u32;
                 let minor = ((rdev & 0xff) | ((rdev >> 12) & 0xfff00)) as u32;
-                max_widths.max_w_size = minor.to_string().len();
+                // println!("{}=>{}==={}",minor.to_string(), minor.to_string().len(),max_widths.max_w_size);
+                max_widths.max_w_size =  max_widths.max_w_size.max(minor.to_string().len());
                 format!("{}, {}", major, minor).len()
             } else {
                 metadata.len().to_string().len()
@@ -621,6 +554,24 @@ fn calculate_max_widths(items: &Vec<(String, Metadata, PathBuf)>) -> MaxWidths {
             .map(|g| g.name().to_string_lossy().len())
             .unwrap_or_else(|| metadata.gid().to_string().len());
         max_widths.max_group = max_widths.max_group.max(group);
+
+        let date: String = match metadata.modified() {
+            Ok(modified) => {
+                let mut date_time: DateTime<Local> = modified.into();
+                date_time = date_time + Duration::hours(1);
+                let now = Local::now();
+
+                if now.signed_duration_since(date_time) > Duration::days(180) || date_time > now {
+                    date_time.format("%b %e  %Y").to_string()
+                } else {
+                    date_time.format("%b %e %H:%M").to_string()
+                }
+            }
+            Err(_) => "".to_string(),
+        };
+        max_widths.max_time = max_widths.max_time.max(date.len());
+        let perm = format_permissions(metadata.permissions().mode(),&path);
+        max_widths.max_perm = max_widths.max_perm.max(perm.len())
     }
 
     max_widths
