@@ -14,7 +14,7 @@ pub fn builtin_rm(args: &[&str]) {
                 if ch == 'r' {
                      flage = true
                 } else {
-                      println!("rm: invalid option -- '{}'", ch);
+                      println!("rm: invalid option -- '{}'", arg);
                       return
                 }
             }

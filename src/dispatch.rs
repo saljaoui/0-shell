@@ -1,26 +1,43 @@
 use crate::commands::*;
-
+// use fork::waitpid;
+use shell::*;
+use fork::{fork, Fork};
 // handle 3la 7sap chno dkhl user lina fe input 
 pub fn dispatch(input: &str) {
-    let parts: Vec<&str> = input.split_whitespace().collect();
+    let parts: Vec<&str> = parse_command(input);
+    if parts.len() == 0 {
+        return
+    }
     let cmd = parts[0];
     let args = &parts[1..];
+    if cmd == "cd" {
+        cd::builtin_cd(args);
+        return;
+    }
 
-    match cmd {
+
+match fork() {
+   Ok(Fork::Parent(child)) => {
+        match fork::waitpid(child) {
+            Ok(_) => {/*println!("fffffffffff")*/},
+            Err(_) => eprintln!("Failted to wait on child"),
+        }
+   }
+   Ok(Fork::Child) => {
+      match cmd {
         "echo" => echo::builtin_echo(args),
         "ls" => ls::builtin_ls(args),
         "cat" => cat::builtin_cat(args),
         "mkdir" => mkdir::builtin_mkdir(args),
-        "cd" => cd::builtin_cd(args),
         "rm" => rm::builtin_rm(args),
         "cp"=>cp::builtin_cp(args),
         "pwd"=>pwd::builtin_pwd(args),
         "mv"=>mv::builtin_mv(args),
-        // "cd"   => builtin_cd(args),
-        // "cd"   => builtin_cd(args),
-        // add dakchi li ba9i hena ...
-
-        _      => println!("Command '{}' not found", cmd),
+        _=> println!("Command '{}' not found", cmd),
     }
-
+    // println!("+++++++++++++");
+    std::process::exit(0);
+},
+   Err(_) => println!("Fork failed"),
+}
 }

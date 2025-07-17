@@ -1,3 +1,4 @@
+use std::fs;
 use std::path::Path;
 use std::{ fs };
 
@@ -55,7 +56,7 @@ fn handle_multiple_files(sources: &[&str], destination: &Path) {
     }
     if !destination.exists() {
         if let Err(e) = fs::create_dir_all(destination) {
-            eprintln!("Failed to create directory: {}", e);
+            println!("Failed to create directory: {}", e);
             return;
         }
     }
@@ -63,14 +64,14 @@ fn handle_multiple_files(sources: &[&str], destination: &Path) {
     // Copy each file
     for file in sources {
         let path = Path::new(file);
-        if !path.is_file() {
-            println!("Skipping '{}': Not a regular file", file);
-            continue;
+        if !path.exists() {
+            println!("Error: '{}' does not exist", file);
+            break;
         }
 
         let dest_path = destination.join(path.file_name().unwrap());
         if let Err(e) = fs::copy(path, dest_path) {
-            eprintln!("Failed to copy '{}': {}", file, e);
+            println!("Failed to copy '{}': {}", file, e);
         }
     }
 }
