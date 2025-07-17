@@ -1,4 +1,5 @@
 use std::io::{self, Write};
+use atty::Stream;
 mod dispatch;
 mod commands;
 // mod signal_handler;
@@ -13,7 +14,10 @@ extern "C" fn signal_handler(_signal: i32) {
 }
 
 fn main() {
-
+     if !atty::is(Stream::Stdout) {
+        eprintln!("error: broken pipe\nstdout is NOT connected to a terminal.");
+        return;
+    }
     // wlc msg :) 
     println!("===============================");
     println!("🦀  Welcome to our 0-shell (Rust)  ");
