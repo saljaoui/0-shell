@@ -41,7 +41,12 @@ fn move_single_file(sources: &str, path_destination: &Path) -> io::Result<()> {
         match path {
             Some(o) => {
                 let new_path = path_destination.join(o);
-                fs::rename(sources, new_path).unwrap();
+                match fs::rename(sources, new_path) {
+                    Ok(_) => {}
+                    Err(e) => {
+                        eprintln!("{e}");
+                    }
+                };
             }
             None => {
                 println!(

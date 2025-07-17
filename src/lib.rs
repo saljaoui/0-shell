@@ -59,7 +59,12 @@ pub fn parse_command(input: &str) -> Vec<&str> {
 
         loop {
             print!("> ");
-            io::stdout().flush().unwrap();
+        match io::stdout().flush(){
+            Ok(_)=>{},
+            Err(e)=>{
+                eprintln!("{e}");
+            }
+        };
 
             let mut input_user = String::new();
             match io::stdin().read_line(&mut input_user) {

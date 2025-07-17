@@ -33,7 +33,12 @@ fn main() {
     loop {
         // hadi daroriya tlbinha fe project ndiroha
         print!("\x1b[32m0-shell\x1b[0m:$ ");
-        io::stdout().flush().unwrap(); // bach n9dro ndiro print dyal "$ " f terminal
+        match io::stdout().flush(){
+            Ok(_)=>{},
+            Err(e)=>{
+                eprintln!("{e}");
+            }
+        }; // bach n9dro ndiro print dyal "$ " f terminal
 
         // read input
         let mut input = String::new();

@@ -85,7 +85,9 @@ pub fn builtin_ls(args: &[&str]) {
     for path in files.clone() {
         list_file(path, &options);
     }
-    if !more_paths && !files.is_empty() && !directories.is_empty() {
+    if !more_paths && !files.is_empty()
+    /*&& !directories.is_empty()*/
+    {
         println!();
     }
     for (i, path) in directories.iter().enumerate() {
@@ -237,7 +239,13 @@ fn get_terminal_width() -> usize {
 use regex::Regex;
 
 pub fn strip_ansi_codes(s: &str) -> String {
-    let re_ansi = Regex::new(r"\x1b\[[0-9;]*m").unwrap();
+    let re_ansi = match Regex::new(r"\x1b\[[0-9;]*m") {
+        Ok(r) => r,
+        Err(e) => {
+            eprintln!("{e}");
+            return s.to_string();
+        }
+    };
     re_ansi.replace_all(s, "").trim().to_string()
 }
 use std::cmp::min;
@@ -320,35 +328,34 @@ fn print_in_columns(filenames: &[String]) {
     //     println!();
     // }
     /********************* */
-      let term_width = get_terminal_width();
+    let term_width = get_terminal_width();
     let count = filenames.len();
 
     if count == 0 {
         return;
     }
 
-    
-let stripped_lengths: Vec<usize> = filenames
-    .iter()
-    .map(|name| strip_ansi_codes(name).len())
-    .collect();
+    let stripped_lengths: Vec<usize> = filenames
+        .iter()
+        .map(|name| strip_ansi_codes(name).len())
+        .collect();
 
-let mut cols = count;
-while cols > 1 {
-    let rows = (count + cols - 1) / cols;
+    let mut cols = count;
+    while cols > 1 {
+        let rows = (count + cols - 1) / cols;
 
-    let mut col_widths = vec![0; cols];
-    for (i, &len) in stripped_lengths.iter().enumerate() {
-        let col = i / rows;
-        col_widths[col] = col_widths[col].max(len);
+        let mut col_widths = vec![0; cols];
+        for (i, &len) in stripped_lengths.iter().enumerate() {
+            let col = i / rows;
+            col_widths[col] = col_widths[col].max(len);
+        }
+
+        let total_width: usize = col_widths.iter().map(|&w| w + 2).sum();
+        if total_width <= term_width {
+            break;
+        }
+        cols -= 1;
     }
-
-    let total_width: usize = col_widths.iter().map(|&w| w + 2).sum();
-    if total_width <= term_width {
-        break;
-    }
-    cols -= 1;
-}
     let rows = (count + cols - 1) / cols;
 
     for row in 0..rows {
