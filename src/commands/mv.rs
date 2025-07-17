@@ -33,6 +33,7 @@ pub fn builtin_mv(args: &[&str]) {
                 match e.kind() {
                     io::ErrorKind::NotFound => {
                         println!("mv: cannot stat '{}': No such file or directory", source);
+                        return;
                     }
                     io::ErrorKind::InvalidInput => {
                         if dest_path.exists() && !dest_path.is_dir() {
@@ -94,7 +95,7 @@ fn move_single_file(sources: &str, path_destination: &Path) -> io::Result<()> {
                 // println!("File moved successfully!");
             }
             Err(error) => {
-                println!("Error moving file: {}", error);
+                // println!("Error moving file: {}", error);
                 return Err(error);
             }
         }

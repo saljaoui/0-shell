@@ -1,7 +1,5 @@
 use std::fs;
 use std::path::Path;
-use std::{ fs };
-
 use crate::commands::utls_file::{ copy_file };
 
 pub fn builtin_cp(args: &[&str]) {
@@ -27,7 +25,7 @@ fn handle_single_file(source: &str, destination: &Path) {
         return;
     }
     if !destination.exists() {
-        println!("Pcp: cannot stat '{}': No a directory",destination.display());
+        println!("cp: cannot stat '{}': No a directory",destination.display());
         return;
     }
     if !path_source.is_file() {
@@ -54,7 +52,7 @@ fn handle_multiple_files(sources: &[&str], destination: &Path) {
         println!("'{}' is not a directory", destination.display());
         return;
     }
-    if !destination.exists() {
+    if !destination.exists() {  
         if let Err(e) = fs::create_dir_all(destination) {
             println!("Failed to create directory: {}", e);
             return;
