@@ -1,6 +1,7 @@
 use std::io::{self, Write};
 mod dispatch;
 mod commands;
+use crate::commands::cp::builtin_cp;
 fn main() {
 
     // wlc msg :) 
@@ -38,3 +39,4 @@ fn main() {
     println!("===============================\n");
 
 }
+ 

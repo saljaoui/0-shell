@@ -19,12 +19,14 @@ pub fn builtin_cp(args: &[&str]) {
 }
 
 fn handle_single_file(source: &str, destination: &Path) {
-    let path_source = fs::canonicalize(source);
-    let final_destination = fs::canonicalize(destination);
-    println!("{:?} {:?}", path_source, final_destination);
-    let path_source = Path::new(source);
+ 
+     let path_source = Path::new(source);
     if !path_source.exists() {
-        println!("Path does not exist!");
+        println!("cp: cannot stat '{}': No such file or directory",destination.display());
+        return;
+    }
+    if !destination.exists() {
+        println!("Pcp: cannot stat '{}': No a directory",destination.display());
         return;
     }
     if !path_source.is_file() {

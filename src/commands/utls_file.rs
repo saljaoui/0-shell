@@ -4,8 +4,10 @@ use std::{ fs, io, path::Path };
 pub fn copy_file(path_sources: &Path, destination: &Path) {
     let valid = fs::copy(path_sources, destination);
     match valid {
-        Ok(_) => { println!("Copied  {:?} to {}", path_sources, destination.display()) }
-        Err(r) => { println!("Error to copy file {}", r) }
+        Ok(_) => {}
+        Err(_) => {
+            println!("cp: cannot open {}' for reading: Permission denied", path_sources.display())
+        }
     }
 }
 pub fn copy_dir_all(src: &Path, dst: &Path) -> io::Result<()> {
