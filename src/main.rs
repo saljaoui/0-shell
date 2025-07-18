@@ -7,10 +7,10 @@ mod commands;
 unsafe extern "C" {
     fn signal(signal: i32, handler: extern "C" fn(i32));
 }
-extern "C" fn signal_handler(_signal: i32) {
-    // println!();
-    // print!("\x1b[32m0-shell\x1b[0m:$ ");
-    // io::stdout().flush().unwrap(); // bach n9dro ndiro print dyal "$ " f terminal
+pub extern "C" fn signal_handler(_signal: i32) {
+    println!();
+    print!("\x1b[32m0-shell\x1b[0m:$ ");
+    io::stdout().flush().unwrap(); // bach n9dro ndiro print dyal "$ " f terminal
 }
 
 fn main() {

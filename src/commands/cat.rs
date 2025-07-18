@@ -9,12 +9,13 @@ pub fn builtin_cat(args: &[&str]) {
         loop {
             let mut input: String = String::new();
             match io::stdin().read_line(&mut input) {
+                Ok(0)=>break,
                 Ok(_) => print!("{}", input),
                 Err(e) => print!("{}", e),
             }
-            if input == "" {
-                break;
-            }
+            // if input == "" {
+            //     break;
+            // }
         }
     } else if args.len() >= 1 {
         for arg in args {
