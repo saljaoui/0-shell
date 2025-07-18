@@ -65,7 +65,7 @@ fn move_single_file(sources: &str, path_destination: &Path) -> io::Result<()> {
     if !path_source.exists() {
         let meta = match fs::symlink_metadata(&path_source) {
             Ok(m) => m,
-            Err(e) => {
+            Err(_) => {
                 return Err(io::Error::new(
                     io::ErrorKind::NotFound,
                     format!("mv: cannot stat '{}': No such file or directory", sources),

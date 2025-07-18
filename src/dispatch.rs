@@ -1,4 +1,5 @@
 use crate::commands::*;
+use std::io::{self, Write};
 use crate::signal_handler;
 
 use fork::{fork, Fork};
@@ -44,6 +45,7 @@ pub fn dispatch(input: &str) {
                 "cp" => cp::builtin_cp(args),
                 "pwd" => pwd::builtin_pwd(args),
                 "mv" => mv::builtin_mv(args),
+                "clear"=>clear_screen(),
                 _ => println!("Command '{}' not found", cmd),
             }
             // println!("+++++++++++++");
@@ -73,4 +75,15 @@ extern "C" fn signal_handler_exit(_signal: i32) {
 }
 unsafe extern "C" {
     fn signal(signal: i32, handler: extern "C" fn(i32));
+}
+
+
+fn clear_screen() {
+    print!("\x1B[2J\x1B[1;1H");
+     match io::stdout().flush(){
+            Ok(_)=>{},
+            Err(e)=>{
+                eprintln!("{e}");
+            }
+        };
 }
