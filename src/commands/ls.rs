@@ -160,8 +160,13 @@ fn list_directory(path: &str, options: &LsOptions, more_paths: bool) {
         let a_name = a.file_name().to_string_lossy().to_lowercase();
         let b_name = b.file_name().to_string_lossy().to_lowercase();
 
-        let a_clean = a_name.replace(".", "");
-        let b_clean = b_name.replace(".", "");
+        let re = Regex::new(r"[^a-zA-Z0-9]").unwrap_or_else(|e| {
+            eprintln!("Regex error: {e}");
+            std::process::exit(1);
+        });
+
+        let a_clean = re.replace_all(&a_name, "");
+        let b_clean = re.replace_all(&b_name, "");
 
         a_clean.cmp(&b_clean)
     });
@@ -265,10 +270,11 @@ fn print_in_columns(filenames: &[String]) {
     let item_count = items.len();
     let mut best_cols = 1;
     let mut best_rows = item_count;
-    // if item_count < term_width 
-    
+    // if item_count < term_width
 
-    for cols in 1..=item_count /* .min(term_width / 3).max(1) */{
+    for cols in 1..=item_count
+    /* .min(term_width / 3).max(1) */
+    {
         let rows = (item_count + cols - 1) / cols;
 
         if rows > best_rows {
@@ -284,7 +290,7 @@ fn print_in_columns(filenames: &[String]) {
             }
         }
 
-        let total_width: usize = col_widths.iter().map(|&w| w + 2).sum();//col_widths.iter().sum::<usize>() + (cols - 1) * 2;
+        let total_width: usize = col_widths.iter().map(|&w| w + 2).sum(); //col_widths.iter().sum::<usize>() + (cols - 1) * 2;
 
         // println!("--{} w_w: {} t_w: {}",rows,total_width,term_width);
         if total_width <= term_width {

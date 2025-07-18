@@ -1,4 +1,4 @@
-use std::{ fs, io, path::Path };
+use std::{fs, io, path::Path};
 
 use crate::commands::utls_file::copy_dir_all;
 
@@ -19,29 +19,30 @@ pub fn builtin_mv(args: &[&str]) {
             return;
         }
         if !dest_path.is_dir() {
-            println!("mv: cannot overwrite non-directory '{}' with multiple sources", destination);
+            println!(
+                "mv: cannot overwrite non-directory '{}' with multiple sources",
+                destination
+            );
             return;
         }
     }
 
     let mut has_errors = false;
     for source in sources {
-                
         match move_single_file(source, dest_path) {
             Ok(_) => {}
             Err(e) => {
                 has_errors = true;
                 match e.kind() {
                     io::ErrorKind::NotFound => {
-                        println!("-- mv: cannot stat '{}': No such file or directory", source);
+                        println!("mv: cannot stat '{}': No such file or directory", source);
                         return;
                     }
                     io::ErrorKind::InvalidInput => {
                         if dest_path.exists() && !dest_path.is_dir() {
                             println!(
                                 "mv: cannot overwrite non-directory '{}' with directory '{}'",
-                                destination,
-                                source
+                                destination, source
                             );
                         } else {
                             println!("mv: {}", e);
@@ -62,12 +63,26 @@ fn move_single_file(sources: &str, path_destination: &Path) -> io::Result<()> {
     let path_source = Path::new(sources);
     // println!("{} {}", path_destination.display(), path_source.display());
     if !path_source.exists() {
-        return Err(
-            io::Error::new(
+        let meta = match fs::symlink_metadata(&path_source) {
+            Ok(m) => m,
+            Err(e) => {
+                return Err(io::Error::new(
+                    io::ErrorKind::NotFound,
+                    format!("mv: cannot stat '{}': No such file or directory", sources),
+                ))
+            }
+        };
+        if meta.is_symlink() {
+            if path_source.is_file() {
+                copy_dir_all(path_source, path_destination)?;
+                fs::remove_file(path_source)?;
+            }
+        } else {
+            return Err(io::Error::new(
                 io::ErrorKind::NotFound,
-                format!("mv: cannot stat '{}': No such file or directory", sources)
-            )
-        );
+                format!("mv: cannot stat '{}': No such file or directory", sources),
+            ));
+        }
     }
     if path_destination.is_dir() {
         let path = path_source.file_name();

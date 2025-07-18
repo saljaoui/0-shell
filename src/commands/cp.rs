@@ -21,11 +21,11 @@ fn handle_single_file(source: &str, destination: &Path) {
  
      let path_source = Path::new(source);
     if !path_source.exists() {
-        println!("cp: cannot stat '{}': No such file or directory",destination.display());
+        println!("cp: cannot stat '{}': No such file or directory",path_source.display());
         return;
     }
     if !destination.exists() {
-        println!("cp: cannot stat '{}': No a directory",destination.display());
+        println!("cp: cannot stat '{}': No a directory",path_source.display());
         return;
     }
     if !path_source.is_file() {
