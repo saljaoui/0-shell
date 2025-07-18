@@ -72,9 +72,7 @@ pub fn parse_command(input: &str) -> Vec<String> {
                     eprintln!("Syntax error: Unterminated quoted string"); // EOF (Ctrl+D)
                     break;
                 }
-                Ok(r) => {
-                    println!("===========>{}",r);
-                }
+                Ok(_) => {}
                 Err(e) => {
                     eprintln!("Error reading input: {}", e);
                     continue;
