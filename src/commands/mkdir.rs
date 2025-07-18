@@ -3,10 +3,6 @@ use std::path::Path;
 
 pub fn builtin_mkdir(args: &[&str]) {
     for arg in args {
-        if arg.starts_with("-") {
-            println!("mkdir: cannot create this folder: {}, because it starts with '-'", arg);
-            continue;
-        }
         let path = Path::new(arg);
         if path.exists() {
             println!("mkdir: cannot create directory '{}': File exists", arg);
