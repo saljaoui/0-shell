@@ -26,13 +26,14 @@ pub fn builtin_mv(args: &[&str]) {
 
     let mut has_errors = false;
     for source in sources {
+                
         match move_single_file(source, dest_path) {
             Ok(_) => {}
             Err(e) => {
                 has_errors = true;
                 match e.kind() {
                     io::ErrorKind::NotFound => {
-                        println!("mv: cannot stat '{}': No such file or directory", source);
+                        println!("-- mv: cannot stat '{}': No such file or directory", source);
                         return;
                     }
                     io::ErrorKind::InvalidInput => {
@@ -59,7 +60,7 @@ pub fn builtin_mv(args: &[&str]) {
 
 fn move_single_file(sources: &str, path_destination: &Path) -> io::Result<()> {
     let path_source = Path::new(sources);
-    println!("{} {}", path_destination.display(), path_source.display());
+    // println!("{} {}", path_destination.display(), path_source.display());
     if !path_source.exists() {
         return Err(
             io::Error::new(
