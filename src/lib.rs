@@ -62,16 +62,19 @@ pub fn parse_command(input: &str) -> Vec<String> {
                 Ok(_) => {}
                 Err(e) => {
                     eprintln!("{e}");
+                    return vec![];
                 }
             };
 
             let mut input_user = String::new();
             match io::stdin().read_line(&mut input_user) {
                 Ok(0) => {
-                    println!("Syntax error: Unterminated quoted string"); // EOF (Ctrl+D)
+                    eprintln!("Syntax error: Unterminated quoted string"); // EOF (Ctrl+D)
                     break;
                 }
-                Ok(_) => {}
+                Ok(r) => {
+                    println!("===========>{}",r);
+                }
                 Err(e) => {
                     eprintln!("Error reading input: {}", e);
                     continue;
@@ -105,7 +108,9 @@ pub fn parse_command(input: &str) -> Vec<String> {
 
         let joined = format!("\n{}", vec_in_loop.join(""));
         let escaped = joined.replace("\"", "");
-        tokens[1].push_str(&escaped);
+        if tokens.len()>1{
+            tokens[1].push_str(&escaped);
+        }
         return tokens;
     }
 

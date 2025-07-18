@@ -7,7 +7,7 @@ pub fn builtin_mkdir(args: &[&str]) {
         if path.exists() {
             println!("mkdir: cannot create directory '{}': File exists", arg);
         } else {
-            match fs::create_dir_all(path) {
+            match fs::create_dir(path) {
                 Ok(_) => {},
                 Err(e) => {
                     let error = e.to_string();
