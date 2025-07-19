@@ -7,9 +7,9 @@ pub fn builtin_pwd(args: &[&str]){
         println!("pwd: too many arguments");
         return
     }
-    let current_dir: PathBuf = match get_current_dir() {
+    let current_dir:PathBuf  = match get_current_dir() {
         Some(dir) => dir,
         None => return,
     };
-    println!("{:?}",current_dir);
+    println!("{}",current_dir.display());
 }
