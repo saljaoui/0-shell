@@ -1,4 +1,6 @@
-use std::{ fs, io, path::Path };
+use std::{fs, io, path::Path,path::PathBuf};
+
+pub static mut CURRENT_DIR: Option<PathBuf> = None;
 
 // (Keep all your existing helper functions exactly as they are)
 pub fn copy_file(path_sources: &Path, destination: &Path) {
@@ -6,7 +8,10 @@ pub fn copy_file(path_sources: &Path, destination: &Path) {
     match valid {
         Ok(_) => {}
         Err(_) => {
-            println!("cp: cannot open {}' for reading: Permission denied", path_sources.display())
+            println!(
+                "cp: cannot open {}' for reading: Permission denied",
+                path_sources.display()
+            )
         }
     }
 }
@@ -24,4 +29,15 @@ pub fn copy_dir_all(src: &Path, dst: &Path) -> io::Result<()> {
     }
 
     Ok(())
+}
+
+pub fn set_current_dir(dir: std::path::PathBuf) {
+    unsafe {
+        CURRENT_DIR = Some(dir);
+    }
+}
+
+#[allow(static_mut_refs)]
+pub fn get_current_dir() -> Option<PathBuf> {
+    unsafe { CURRENT_DIR.clone() }
 }

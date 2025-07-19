@@ -1,14 +1,15 @@
- use std::env;
+use crate::commands::utls_file::get_current_dir;
+use std::path::PathBuf;
+
 
 pub fn builtin_pwd(args: &[&str]){
     if args.len() > 0 {
         println!("pwd: too many arguments");
         return
     }
-   match env::current_dir(){
-        Ok(path)=> println!("{}", path.to_string_lossy()),
-        Err(e)=> println!("{e}")
+    let current_dir: PathBuf = match get_current_dir() {
+        Some(dir) => dir,
+        None => return,
     };
-   
-
+    println!("{:?}",current_dir);
 }
