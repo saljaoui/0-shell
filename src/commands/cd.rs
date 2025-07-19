@@ -27,7 +27,7 @@ pub fn builtin_cd(args: &[&str]) {
                 }
             }
             Err(_) => {
-                println!("cd: no such file or directory: {}", args[0]);
+                println!("cd: can't cd to {}", args[0]);
             }
         }
     }
