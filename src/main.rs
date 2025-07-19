@@ -3,7 +3,7 @@ use std::env;
 use std::io::{self, Write};
 mod commands;
 mod dispatch;
-use commands::utls_file::{set_current_dir, get_current_dir};
+use commands::utls_file::{set_current_dir};
 // mod signal_handler;
 
 unsafe extern "C" {

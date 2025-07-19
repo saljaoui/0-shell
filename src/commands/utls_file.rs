@@ -1,5 +1,4 @@
 use std::{fs, io, path::Path,path::PathBuf};
-// use std::path::PathBuf;
 
 pub static mut CURRENT_DIR: Option<PathBuf> = None;
 
@@ -38,6 +37,7 @@ pub fn set_current_dir(dir: std::path::PathBuf) {
     }
 }
 
+#[allow(static_mut_refs)]
 pub fn get_current_dir() -> Option<PathBuf> {
     unsafe { CURRENT_DIR.clone() }
 }
