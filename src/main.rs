@@ -3,13 +3,18 @@ use std::env;
 use std::io::{self, Write};
 mod commands;
 mod dispatch;
-use commands::utls_file::{set_current_dir};
+use commands::utls_file::*;
 // mod signal_handler;
 
 unsafe extern "C" {
     fn signal(signal: i32, handler: extern "C" fn(i32));
 }
-pub extern "C" fn signal_handler(_signal: i32) {
+pub extern "C" fn signal_handler_c(_signal: i32) {
+    println!();
+    print!("\x1b[32m0-shell\x1b[0m:$ ");
+    io::stdout().flush().unwrap(); // bach n9dro ndiro print dyal "$ " f terminal
+}
+pub extern "C" fn signal_handler_z(_signal: i32) {
     println!();
     print!("\x1b[32m0-shell\x1b[0m:$ ");
     io::stdout().flush().unwrap(); // bach n9dro ndiro print dyal "$ " f terminal
@@ -20,6 +25,7 @@ fn main() {
         eprintln!("error: broken pipe\nstdout is NOT connected to a terminal.");
         return;
     }
+
     // wlc msg :)
     println!("===============================");
     println!("🦀  Welcome to our 0-shell (Rust)  ");
@@ -38,7 +44,8 @@ fn main() {
 
     // signal_handler::setup_signal_handler();
     unsafe {
-        signal(2, signal_handler);
+        signal(2, signal_handler_c);
+        signal(20, signal_handler_z); // SIGTSTP
     }
 
     // infinity loop bach n9ra chno dkhol user
@@ -80,3 +87,6 @@ fn main() {
     println!("👋  Goodbye! Thanks for using our 0-shell");
     println!("===============================\n");
 }
+
+
+

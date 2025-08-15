@@ -41,3 +41,4 @@ pub fn set_current_dir(dir: std::path::PathBuf) {
 pub fn get_current_dir() -> Option<PathBuf> {
     unsafe { CURRENT_DIR.clone() }
 }
+
